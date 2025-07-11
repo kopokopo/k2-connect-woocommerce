@@ -46,3 +46,20 @@ wp-config.php
 # Note: If you wish to whitelist themes,
 # uncomment the next line
 #/wp-content/themes
+
+# Composer dependencies
+vendor/
+
+# PHPUnit cache and logs
+.phpunit.result.cache
+bin/
+
+# PHP CS Fixer cache
+.php-cs-fixer.cache
+.phpcs.xml.dist
+.stubs/
+
+# OS or IDE specific files
+.DS_Store
+.idea/
+.vscode/
