@@ -63,3 +63,6 @@ bin/
 .DS_Store
 .idea/
 .vscode/
+
+# Node related
+node_modules/
