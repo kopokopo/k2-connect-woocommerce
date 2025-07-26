@@ -28,6 +28,7 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
         // Get settings.
         $this->enabled            = $this->get_option('enabled');
         $this->title              = $this->get_option('title');
+        $this->description        = $this->get_option('description');
         $this->client_id          = $this->get_option('client_id');
         $this->client_secret      = $this->get_option('client_secret');
         $this->api_key            = $this->get_option('api_key');
@@ -58,6 +59,12 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
             'type'        => 'text',
             'description' => 'Title shown to customers at checkout.',
             'default'     => 'Kopo Kopo for WooCommerce',
+          ],
+          'description' => [
+            'title'       => 'Description',
+            'type'        => 'text',
+            'description' => 'Description shown to customers at checkout.',
+            'default'     => 'Pay using Lipa na M-Pesa. Modal will appear after clicking “Lipa na M-Pesa”.',
           ],
           'client_id' => [
             'title'       => 'Client ID',
@@ -92,13 +99,11 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
 
     public function process_payment($order_id): array
     {
-        $order = new WC_Order($order_id);
+        $order = wc_get_order($order_id);
 
-
-        // TODO: Handle payment logic
         return [
-          'result'   => 'success',
-          'redirect' => $this->get_return_url($order),
+            'result' => 'success',
+            //'redirect' => add_query_arg('show_stk_modal', 'yes', $this->get_return_url($order)),
         ];
     }
 
@@ -128,4 +133,10 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
                ! empty($this->settings['api_key']) &&
                ! empty($this->settings['environment']);
     }
+
+    public function thankyou_page(): void
+    {
+        echo "Thank you for the order.";
+    }
+
 }
