@@ -34,6 +34,12 @@ class WC_Block_Integration_K2 implements IntegrationInterface
             $asset['version'],
             true
         );
+
+        wp_localize_script('kopo-kopo-blocks-script', 'KKWooData', [
+            'plugin_url'          => plugins_url('', __FILE__),
+            'k2_logo_with_name_img' => plugins_url('images/k2-logo-with-name.png', __FILE__),
+            'kenyan_flag_img'     => plugins_url('images/kenyan-flag.png', __FILE__),
+        ]);
     }
 
     public function get_script_handles(): array

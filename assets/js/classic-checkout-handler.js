@@ -7,7 +7,7 @@ jQuery(function ($) {
 
             if (!$('#kkwoo-custom-button').length) {
                 $('#place_order').after(`
-                    <button type="button" id="kkwoo-custom-button" class="button alt">
+                    <button type="button" id="kkwoo-custom-button" class="k2 button alt">
                         Pay with Kopo Kopo
                     </button>
                 `);
@@ -43,8 +43,26 @@ function openSTKModal() {
       document.body.removeChild(modal);
     },
     children: `
-      <p>This will initiate an M-Pesa STK push to your phone.</p>
-      <p>Please check your phone and enter your M-Pesa PIN to complete the payment.</p>
+      <div class='amount-card'>
+        <div class='label'>
+          Amount to pay
+        </div>
+        <div class='amount'>
+          Ksh 32,000
+        </div>
+      </div>
+      <form>
+        <div class='form-group'>
+          <label>Enter M-PESA phone number</label>
+          <div class='amount-input'>
+            <span class='country-code'>
+              <img class='k2' src='${KKWooData.kenyan_flag_img}' alt='Kenyan flag'/>
+              <span> +254</span>
+            </span>            
+            <input type='text' placeholder='7xx xxx xxx'/>
+          </div>
+        </div>
+      </form>
     `,
   });
 
@@ -64,7 +82,7 @@ function getOrderIdFromUrl() {
 function createModal({ title, onCancel, onConfirm, children }) {
   // Overlay
   const overlay = document.createElement('div');
-  overlay.className = 'modal-overlay';
+  overlay.className = 'k2 modal-overlay';
 
   // Modal body
   const body = document.createElement('div');
@@ -101,18 +119,24 @@ function createModal({ title, onCancel, onConfirm, children }) {
 
   // Confirm button
   const confirmBtn = document.createElement('button');
-  confirmBtn.className = 'modal-btn modal-btn-confirm';
+  confirmBtn.className = 'k2 modal-btn modal-btn-confirm';
   confirmBtn.textContent = 'Proceed to pay';
   confirmBtn.addEventListener('click', onConfirm);
 
   // Assemble actions
   actions.appendChild(confirmBtn);
 
+  // Modal Footer
+  const modalFooter = document.createElement('div');
+  modalFooter.className = 'modal-footer';
+  modalFooter.innerHTML = `Powered by <img src='${KKWooData.k2_logo_with_name_img}' alt='Kopo Kopo (Logo)' /> `;
+
   // Assemble modal content
   body.appendChild(modalTitle);
   body.appendChild(closeButton);
   body.appendChild(content);
   body.appendChild(actions);
+  body.appendChild(modalFooter);
 
   // Assemble overlay
   overlay.appendChild(body);

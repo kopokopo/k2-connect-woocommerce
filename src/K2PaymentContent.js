@@ -101,8 +101,26 @@ const K2PaymentContent = ({ emitResponse, billing, eventRegistration }) => {
       {isModalOpen &&
         createPortal(
           <Modal title='Lipa na M-PESA' isOpen={isModalOpen} onConfirm={handleConfirm} onCancel={handleCancel}>
-            <p>This will initiate an M-Pesa STK push to your phone.</p>
-            <p>Please check your phone and enter your M-Pesa PIN to complete the payment.</p>
+            <div class='amount-card'>
+              <div class='label'>
+                Amount to pay
+              </div>
+              <div class='amount'>
+                Ksh 32,000
+              </div>
+            </div>
+            <form>
+              <div class='form-group'>
+                <label>Enter M-PESA phone number</label>
+                <div class='amount-input'>
+                  <span class='country-code'>
+                    <img src={window.KKWooData.kenyan_flag_img} alt='Kenyan flag' class='k2'/> 
+                    <span> +254</span>
+                  </span>
+                  <input type='text' placeholder='7xx xxx xxx'/>
+                </div>
+              </div>
+            </form>
           </Modal>,
           document.body
         )}
