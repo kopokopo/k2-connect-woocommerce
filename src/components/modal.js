@@ -5,7 +5,7 @@ const Modal = ({ title, isOpen, onConfirm, onCancel, children }) => {
 
   return (
     <div 
-      className="modal-overlay"
+      className="k2 modal-overlay"
     >
       <div 
         className="modal-body"
@@ -32,10 +32,13 @@ const Modal = ({ title, isOpen, onConfirm, onCancel, children }) => {
         <div className="modal-actions">
           <button
             onClick={onConfirm}
-            className="modal-btn modal-btn-confirm"
+            className="k2 modal-btn modal-btn-confirm"
           >
             Proceed to pay
           </button>
+        </div>
+        <div className="modal-footer">
+          Powered by <img src={window.KKWooData.k2_logo_with_name_img} alt='Kopo Kopo (Logo)' /> 
         </div>
       </div>
     </div>
