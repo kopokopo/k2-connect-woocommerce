@@ -159,8 +159,37 @@ add_action('wp_enqueue_scripts', function () {
             'rest_url'           => esc_url_raw(rest_url('kopo-kopo/v1/stk-push')),
             'plugin_url'         => plugins_url('', __FILE__),
             'k2_logo_with_name_img' => plugins_url('images/k2-logo-with-name.png', __FILE__),
-            'kenyan_flag_img'    => plugins_url('images/kenyan-flag.png', __FILE__)
+            'kenyan_flag_img'    => plugins_url('images/kenyan-flag.png', __FILE__),
+            'phone_icon' => plugins_url('images/svg/phone.svg', __FILE__),
+            'spinner_icon' => plugins_url('images/svg/spinner.svg', __FILE__),
         ];
+
+        wp_enqueue_script(
+            'kkwoo-ui-templates-init',
+            plugin_dir_url(__FILE__) . 'assets/js/ui-templates/ui-templates-init.js',
+            ['jquery'],
+            '1.0',
+            true
+        );
+        wp_localize_script('kkwoo-ui-templates-init', 'KKWooData', $localized_data);
+
+
+        wp_enqueue_script(
+            'kkwoo-mpesa-number-form',
+            plugin_dir_url(__FILE__) . 'assets/js/ui-templates/mpesa-number-form.js',
+            ['jquery'],
+            '1.0',
+            true
+        );
+
+
+        wp_enqueue_script(
+            'kkwoo-pin-instruction',
+            plugin_dir_url(__FILE__) . 'assets/js/ui-templates/pin-instruction.js',
+            ['jquery'],
+            '1.0',
+            true
+        );
 
         wp_enqueue_script(
             'kkwoo-checkout-handler',

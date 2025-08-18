@@ -1,4 +1,4 @@
-jQuery(function ($) {
+(function ($, templates) {
     function togglePlaceOrderButton() {
         const selectedPayment = $('input[name="payment_method"]:checked').val();
 
@@ -30,44 +30,47 @@ jQuery(function ($) {
         $('form.checkout').append(`<input type="hidden" name="kkwoo_phone" value="${phone}" />`);
         $('#place_order').trigger('click');
     });
-});
 
-function openSTKModal() {
-  const modal = createModal({
-    title: 'Lipa na M-PESA',
-    onCancel: () => {
-      document.body.removeChild(modal);
-    },
-    onConfirm: () => {
-      alert('Payment confirmed!');
-      document.body.removeChild(modal);
-    },
-    children: `
-      <div class='amount-card'>
-        <div class='label'>
-          Amount to pay
-        </div>
-        <div class='amount'>
-          Ksh 32,000
-        </div>
-      </div>
-      <form>
-        <div class='form-group'>
-          <label>Enter M-PESA phone number</label>
-          <div class='amount-input'>
-            <span class='country-code'>
-              <img class='k2' src='${KKWooData.kenyan_flag_img}' alt='Kenyan flag'/>
-              <span> +254</span>
-            </span>            
-            <input type='text' placeholder='7xx xxx xxx'/>
-          </div>
-        </div>
-      </form>
-    `,
-  });
+    function openSTKModal() {
+      const modal = createModal({
+        children: templates.MpesaNumberForm({
+          onCancel: () => {
+            document.body.removeChild(modal);
+          },
+          onConfirm: () => {
+            let mpesaNumberForm = $('#mpesa-number-form');
+            let pinInstruction = $('#pin-instruction');
+            modal.removeChild(mpesaNumberForm);
+            modal.appendChild(pinInstruction)
+          },
+        })
+      });
 
-  document.body.appendChild(modal);
-}
+      document.body.appendChild(modal);
+      let modalContent = modal.querySelector('.modal-content');
+      
+      modal.querySelector('.close-modal').addEventListener('click', () => {
+        modal.remove();
+      });
+
+      modal.querySelector('#proceed-to-pay-btn').addEventListener('click', (e) => {
+        e.preventDefault(); // prevent form submit
+        let mpesaNumberForm = document.querySelector('#mpesa-number-form');
+        let pinInstruction = templates.PinInstruction();
+
+        let temp = document.createElement("div");
+        temp.innerHTML = pinInstruction;
+        let pinInstructionNode = temp.firstElementChild;
+
+        modalContent.removeChild(mpesaNumberForm);
+        modalContent.appendChild(pinInstructionNode);
+        modal.querySelector('.close-modal').addEventListener('click', () => {
+          modal.remove();
+        });
+      });
+    }
+})(jQuery, window.KKWooTemplates);
+
 
 function getOrderIdFromUrl() {
   const pathParts = window.location.pathname.split('/');
@@ -79,7 +82,7 @@ function getOrderIdFromUrl() {
 }
 
 
-function createModal({ title, onCancel, onConfirm, children }) {
+function createModal({ children }) {
   // Overlay
   const overlay = document.createElement('div');
   overlay.className = 'k2 modal-overlay';
@@ -91,18 +94,6 @@ function createModal({ title, onCancel, onConfirm, children }) {
   // Prevent click inside modal from closing it
   body.addEventListener('click', (e) => e.stopPropagation());
 
-  // Modal title
-  const modalTitle = document.createElement('h3');
-  modalTitle.className = 'modal-title';
-  modalTitle.textContent = title;
-
-  // Close button
-  const closeButton = document.createElement('button');
-  closeButton.className = 'modal-close-btn';
-  closeButton.setAttribute('aria-label', 'Close modal');
-  closeButton.textContent = '×';
-  closeButton.addEventListener('click', onCancel);
-
   // Modal content
   const content = document.createElement('div');
   content.className = 'modal-content';
@@ -113,29 +104,13 @@ function createModal({ title, onCancel, onConfirm, children }) {
     content.appendChild(children);
   }
 
-  // Action buttons container
-  const actions = document.createElement('div');
-  actions.className = 'modal-actions';
-
-  // Confirm button
-  const confirmBtn = document.createElement('button');
-  confirmBtn.className = 'k2 modal-btn modal-btn-confirm';
-  confirmBtn.textContent = 'Proceed to pay';
-  confirmBtn.addEventListener('click', onConfirm);
-
-  // Assemble actions
-  actions.appendChild(confirmBtn);
-
   // Modal Footer
   const modalFooter = document.createElement('div');
   modalFooter.className = 'modal-footer';
   modalFooter.innerHTML = `Powered by <img src='${KKWooData.k2_logo_with_name_img}' alt='Kopo Kopo (Logo)' /> `;
 
   // Assemble modal content
-  body.appendChild(modalTitle);
-  body.appendChild(closeButton);
   body.appendChild(content);
-  body.appendChild(actions);
   body.appendChild(modalFooter);
 
   // Assemble overlay
@@ -146,3 +121,4 @@ function createModal({ title, onCancel, onConfirm, children }) {
 
   return overlay;
 }
+

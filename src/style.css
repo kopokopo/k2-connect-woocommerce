@@ -3,7 +3,7 @@
   --Gray-Gray-800: #40444C;
   --Secondary-Success-success-500: #149187;
   --Primary-Navy-Blue-navy-blue-100: #BCC1C8;
-  --Primary-Navy-Blue-navy-blue-300: #6E7888
+  --Primary-Navy-Blue-navy-blue-300: #6E7888;
   --Primary-Navy-Blue-navy-blue-400: #525E71;
   --Primary-Navy-Blue-navy-blue-600: #233147;
   --Primary-Navy-Blue-navy-blue-900: #101721;
@@ -15,6 +15,29 @@
 
 body:has(dialog[open]) {
   overflow: hidden;
+}
+
+.k2 .outline, .k2.outline {
+  background-color: transparent;
+  border-color: var(--Primary-Navy-Blue-navy-blue-100);
+  color: var(--Primary-Navy-Blue-navy-blue-500);
+  box-shadow: 0 1px 2px 0 rgba(16, 24, 40, 0.05);
+}
+
+.k2 svg.spinner, .k2 img.spinner {
+  display: block;
+  animation: spin 1s linear infinite;
+  transform-origin: 50% 50%;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .k2 svg.spinner, .k2 img.spinner { animation: none; }
+
 }
 
 /* BUTTON*/
@@ -99,8 +122,7 @@ img.k2 {
 
 .k2 .modal-content {
   position: 'relative';
-  margin-top: 62px;
-  margin-bottom: 48px;
+  margin-bottom: 32px;
 }
 
 .k2 .modal-close-btn:hover {
@@ -112,6 +134,7 @@ img.k2 {
   gap: 15px;
   justify-content: flex-end;
   margin-top: 30px;
+  width: 100%
 }
 
 .k2 .modal-btn {
@@ -169,6 +192,7 @@ img.k2 {
   border-radius: 8px;
   border: 1px solid var(--Secondary-Grey-grey-100);
   background: var(--Secondary-Grey-grey-50);
+  margin-top: 62px;
   margin-bottom: 32px;
 }
 
@@ -235,3 +259,34 @@ img.k2 {
 }
 
 /* END FORM */
+
+/* PIN INSTRUCTION SECTION */
+
+.k2 #pin-instruction {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.k2 .main-info {
+  margin: 0;
+  margin-top: 32px;
+  margin-bottom: 8px;
+  color: var(--Primary-Navy-Blue-navy-blue-500);
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 28px;
+  text-align: center;
+}
+
+.k2 .side-note {
+  margin: 0;
+  margin-bottom: 24px;
+  color: var(--Primary-Navy-Blue-navy-blue-300);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  text-align: center;
+}
+
+/* END PIN INSTRUCTION SECTION */
