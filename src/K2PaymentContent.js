@@ -1,12 +1,51 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import Modal from './components/modal.js';
+import { Modal, MpesaNumberForm, PinInstruction } from './components'
+
+/**
+ * Ordered list of steps in the LNM payment flow.
+ * Used to determine the sequence of screens in the checkout process.
+ */
+const LNMPaymentSteps = [
+  'MpesaNumberForm',
+  'PinInstruction',
+  'Processing',
+  'Response',
+  'NoResponseInstruction'
+]
+
 
 const K2PaymentContent = ({ emitResponse, billing, eventRegistration }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentStep, _setCurrentStep] = useState('MpesaNumberForm');
   const [processingCheckout, setProcessingCheckout] = useState(false);
   const { onPaymentSetup } = eventRegistration;
 
+  // Use this to restrict to only the defined LNMPaymentSteps[]
+  const setCurrentStep = (step) => {
+    if (LNMPaymentSteps.includes(step)) {
+      _setCurrentStep(step);
+    } else {
+      console.warn(`Invalid LNMPaymentStep: ${step}`);
+    }
+  };
+
+  const nextStep = () => {
+    const currentIndex = LNMPaymentSteps.indexOf(currentStep);
+    switch (LNMPaymentSteps[currentIndex]) {
+      case 'MpesaNumberForm':
+        setCurrentStep('PinInstruction');
+        break;
+      case 'PinInstruction':
+        setCurrentStep('Processing');
+    }
+  };
+
+  const resetSteps = () => {
+    setCurrentStep('MpesaNumberForm');
+  }
+
+ 
   // Fallback modal opener via custom event
   useEffect(() => {
     const openModal = () => setIsModalOpen(true);
@@ -49,7 +88,7 @@ const K2PaymentContent = ({ emitResponse, billing, eventRegistration }) => {
     };
   };
 
-  const handleConfirm = async () => {
+  const makePayment = async () => {
     const stkResult = await sendSTKPush();
 
     const payload = {
@@ -75,10 +114,16 @@ const K2PaymentContent = ({ emitResponse, billing, eventRegistration }) => {
     window.kkwooPaymentReject = null;
 
     emitResponse?.success?.({ paymentMethodData: payload });
+
+  }
+
+  const handleStep = async () => {
+    nextStep();
   };
 
   const handleCancel = () => {
     setIsModalOpen(false);
+    resetSteps();
     setProcessingCheckout(false);
 
     if (typeof window.kkwooPaymentReject === 'function') {
@@ -95,32 +140,19 @@ const K2PaymentContent = ({ emitResponse, billing, eventRegistration }) => {
     emitResponse?.error?.({ message: 'Payment cancelled by user.' });
   };
 
+  const handleClose = () => {
+    setIsModalOpen(false);
+  }
+
   return (
     <>
       <p>Pay using Lipa na M-Pesa. Modal will appear after clicking "Lipa na M-Pesa".</p>
       {isModalOpen &&
         createPortal(
-          <Modal title='Lipa na M-PESA' isOpen={isModalOpen} onConfirm={handleConfirm} onCancel={handleCancel}>
-            <div class='amount-card'>
-              <div class='label'>
-                Amount to pay
-              </div>
-              <div class='amount'>
-                Ksh 32,000
-              </div>
-            </div>
-            <form>
-              <div class='form-group'>
-                <label>Enter M-PESA phone number</label>
-                <div class='amount-input'>
-                  <span class='country-code'>
-                    <img src={window.KKWooData.kenyan_flag_img} alt='Kenyan flag' class='k2'/> 
-                    <span> +254</span>
-                  </span>
-                  <input type='text' placeholder='7xx xxx xxx'/>
-                </div>
-              </div>
-            </form>
+          <Modal isOpen={isModalOpen} >
+            { currentStep == 'MpesaNumberForm' && <MpesaNumberForm onCancel={handleCancel} onConfirm={handleStep} /> }
+            { currentStep == 'PinInstruction' && <PinInstruction onClose={handleClose} /> }
+
           </Modal>,
           document.body
         )}
