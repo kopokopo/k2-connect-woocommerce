@@ -17,7 +17,7 @@ const registerPaymentMethodWithRegistry = (registry = window.wc.wcBlocksRegistry
 		content: createElement(K2PaymentContent),
 		edit: createElement('p', {}, settings.description),
 		canMakePayment: () => true,
-		placeOrderButtonLabel: 'Lipa na M-Pesa',
+		placeOrderButtonLabel: 'Lipa na M-PESA',
 		supports: {
 			features: settings.supports ?? [],
 		},

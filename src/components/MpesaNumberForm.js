@@ -1,9 +1,10 @@
+import { useRef, useState } from "react";
+
 export const MpesaNumberForm = ({ onCancel, onConfirm }) => {
   return (
     <>
       <header>
         <h3 class="modal-title">Lipa na M-PESA</h3 >
-        
         <button
           onClick={onCancel}
           className="modal-close-btn"
@@ -12,7 +13,6 @@ export const MpesaNumberForm = ({ onCancel, onConfirm }) => {
           ×
         </button>
       </header>
-      
       <div class='amount-card'>
         <div class='label'>
           Amount to pay

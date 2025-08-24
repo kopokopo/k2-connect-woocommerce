@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Modal, MpesaNumberForm, PinInstruction } from './components'
+import { Modal, MpesaNumberForm, PinInstruction } from './components';
 
 /**
  * Ordered list of steps in the LNM payment flow.
@@ -45,41 +45,6 @@ const K2PaymentContent = ({ emitResponse, billing, eventRegistration }) => {
     setCurrentStep('MpesaNumberForm');
   }
 
- 
-  // Fallback modal opener via custom event
-  useEffect(() => {
-    const openModal = () => setIsModalOpen(true);
-    window.addEventListener('kkwoo-open-modal', openModal);
-    return () => window.removeEventListener('kkwoo-open-modal', openModal);
-  }, []);
-
-  // Handle Woo Blocks payment flow integration
-  useEffect(() => {
-    if (typeof onPaymentSetup !== 'function') {
-      console.warn('onPaymentSetup is not available or not a function.');
-      return;
-    }
-
-    const unsubscribe = onPaymentSetup(() => {
-      if (processingCheckout) return;
-
-      setIsModalOpen(true);
-      setProcessingCheckout(true);
-
-      return new Promise((resolve, reject) => {
-        window.kkwooPaymentResolve = resolve;
-        window.kkwooPaymentReject = reject;
-
-        emitResponse?.error?.({
-          message: 'Please complete payment in modal.',
-        });
-      });
-    });
-
-    return () => unsubscribe?.();
-  }, [processingCheckout, emitResponse, onPaymentSetup]);
-
-  // STK Push simulation
   const sendSTKPush = async () => {
     await new Promise((res) => setTimeout(res, 1000));
     return {
@@ -118,7 +83,7 @@ const K2PaymentContent = ({ emitResponse, billing, eventRegistration }) => {
   }
 
   const handleStep = async () => {
-    nextStep();
+     nextstep();
   };
 
   const handleCancel = () => {
