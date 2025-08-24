@@ -1,124 +1,154 @@
 (function ($, templates) {
     function togglePlaceOrderButton() {
-        const selectedPayment = $('input[name="payment_method"]:checked').val();
+      const $btn = $('#place_order');
+      const chosenMethod = $('input[name="payment_method"]:checked').val();
 
-        if (selectedPayment === 'kkwoo') {
-            $('#place_order').hide();
-
-            if (!$('#kkwoo-custom-button').length) {
-                $('#place_order').after(`
-                    <button type="button" id="kkwoo-custom-button" class="k2 button alt">
-                        Pay with Kopo Kopo
-                    </button>
-                `);
-            }
-        } else {
-            $('#place_order').show();
-            $('#kkwoo-custom-button').remove();
-        }
+      if (chosenMethod === 'kkwoo') {
+          $btn
+              .text('Proceed to Lipa NA M-PESA')
+              .attr('data-value', 'Proceed to Lipa NA M-PESA')
+              .addClass('k2');
+      } else {
+          $btn
+              .text('Place order')
+              .attr('data-value', 'Place order')
+              .removeClass('k2');
+      }
     }
 
-    togglePlaceOrderButton();
+    function renderSection(removeSectionId, renderFn) {
+      const $existing = $("#" + removeSectionId);
+      if ($existing.length) $existing.remove();
 
-    $('form.checkout').on('change', 'input[name="payment_method"]', togglePlaceOrderButton);
+      const htmlString = renderFn();
+      const $newSection = $(htmlString);
 
-    $('form.checkout').on('click', '#kkwoo-custom-button', function (e) {
-        e.preventDefault();
+      $(".k2 .modal-content").append($newSection);
+    }
 
-        openSTKModal();
+    function populateCheckoutInfo() {
+      $("#currency").text(KKWooData.currency);
+      $("#total-amount").text(KKWooData.total_amount);
+      $("#store-name").text(KKWooData.store_name);
+    }
 
-        $('form.checkout').append(`<input type="hidden" name="kkwoo_phone" value="${phone}" />`);
-        $('#place_order').trigger('click');
+    function validMpesaNumber(phone) {
+      const $error = $(".message.error");
+
+      if (!phone) {
+        $error.text("Phone number is required.").show();
+        return false;
+      }
+      
+      if (!/^\d{9}$/.test(phone)) {
+        $error.text("Phone number must be 9 digits.").show();
+        return false;
+      }
+
+      $error.hide();
+      return true;
+    }
+
+    function addRetryPaymentListener(removeSectionId) {
+      $("#retry-payment")
+        .off("click")
+        .on("click", () => {
+          renderSection(removeSectionId, templates.MpesaNumberForm);
+          populateCheckoutInfo();
+        });
+    }
+
+    function addRedirectToOrderReceived() {
+      let seconds = 10;
+      const $countdown = $("#countdown");
+
+      const timer = setInterval(() => {
+        seconds--;
+        $countdown.text(seconds < 10 ? "00:0" + seconds : "00:" + seconds);
+
+        if (seconds <= 0) {
+          clearInterval(timer);
+          window.location.href = KKWooData.order_received_url;
+        }
+      }, 1000);
+
+      $("#redirect-to-order-received")
+      .off("click")
+      .on("click", () => {
+        clearInterval(timer);
+        window.location.href = KKWooData.order_received_url;
+      });
+    }
+
+    const DefaultPollingCallbacks = {
+      onSuccess: (data, sectionId) => {
+        renderSection(sectionId, templates.PaymentSuccess);
+        populateCheckoutInfo();
+        addRedirectToOrderReceived();
+      },
+      onFailure: (data, sectionId) => {
+        renderSection(sectionId, templates.PaymentError);
+        addRetryPaymentListener("payment-error");
+      },
+      onNoResult: (sectionId) => {
+        renderSection(sectionId, templates.PaymentNoResultYet);
+      },
+    };
+  
+    async function initiatePayment(phone) {
+      try {
+        const response = await fetch(KKWooData.rest_url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-WP-Nonce": KKWooData.nonce,
+          },
+          body: JSON.stringify({ phone, order_key: KKWooData.order_key }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          PollingManager.timeout = setTimeout(() => {
+            PollingManager.start(DefaultPollingCallbacks, "pin-instruction", false);
+          }, 40 * 1000);
+        } else {
+          renderSection("mpesa-number-form", () =>
+            `<p class="error">Payment failed: ${data.message}</p>`
+          );
+        }
+      } catch (err) {
+        renderSection("mpesa-number-form", () =>
+          `<p class="error">Unexpected error. Please try again.</p>`
+        );
+      }
+    }
+
+    // Run whenever payment method changes
+    $(document).on('change', 'input[name="payment_method"]', togglePlaceOrderButton);
+
+    // Run after Woo updates checkout (important for when page refreshes to ensure consistency of selection internally in Woo and whats visually selected)
+    $(document.body).on('updated_checkout payment_method_selected', togglePlaceOrderButton);
+
+    $(document).on("click", "#proceed-to-pay-btn", (e) => {
+      e.preventDefault();
+      const phone = $("#mpesa-phone-input").val().trim();
+
+      if (!validMpesaNumber(phone)) return;
+
+      renderSection("mpesa-number-form", templates.PinInstruction);
+      initiatePayment(phone);
     });
 
-    function openSTKModal() {
-      const modal = createModal({
-        children: templates.MpesaNumberForm({
-          onCancel: () => {
-            document.body.removeChild(modal);
-          },
-          onConfirm: () => {
-            let mpesaNumberForm = $('#mpesa-number-form');
-            let pinInstruction = $('#pin-instruction');
-            modal.removeChild(mpesaNumberForm);
-            modal.appendChild(pinInstruction)
-          },
-        })
-      });
+    $(document).on("click", "#proceed-to-poll", (e) => {
+      e.preventDefault();
+      PollingManager.stop();
+      renderSection("pin-instruction", templates.Polling);
+      PollingManager.start(DefaultPollingCallbacks);
+    });
 
-      document.body.appendChild(modal);
-      let modalContent = modal.querySelector('.modal-content');
-      
-      modal.querySelector('.close-modal').addEventListener('click', () => {
-        modal.remove();
-      });
-
-      modal.querySelector('#proceed-to-pay-btn').addEventListener('click', (e) => {
-        e.preventDefault(); // prevent form submit
-        let mpesaNumberForm = document.querySelector('#mpesa-number-form');
-        let pinInstruction = templates.PinInstruction();
-
-        let temp = document.createElement("div");
-        temp.innerHTML = pinInstruction;
-        let pinInstructionNode = temp.firstElementChild;
-
-        modalContent.removeChild(mpesaNumberForm);
-        modalContent.appendChild(pinInstructionNode);
-        modal.querySelector('.close-modal').addEventListener('click', () => {
-          modal.remove();
-        });
-      });
-    }
+    // Initial setup
+    renderSection("mpesa-number-form", templates.MpesaNumberForm);
+    populateCheckoutInfo();
 })(jQuery, window.KKWooTemplates);
-
-
-function getOrderIdFromUrl() {
-  const pathParts = window.location.pathname.split('/');
-  const idx = pathParts.indexOf('order-received');
-  if (idx !== -1 && pathParts[idx + 1]) {
-    return pathParts[idx + 1];
-  }
-  return null;
-}
-
-
-function createModal({ children }) {
-  // Overlay
-  const overlay = document.createElement('div');
-  overlay.className = 'k2 modal-overlay';
-
-  // Modal body
-  const body = document.createElement('div');
-  body.className = 'modal-body';
-
-  // Prevent click inside modal from closing it
-  body.addEventListener('click', (e) => e.stopPropagation());
-
-  // Modal content
-  const content = document.createElement('div');
-  content.className = 'modal-content';
-
-  if (typeof children === 'string') {
-    content.innerHTML = children;
-  } else if (children instanceof Node) {
-    content.appendChild(children);
-  }
-
-  // Modal Footer
-  const modalFooter = document.createElement('div');
-  modalFooter.className = 'modal-footer';
-  modalFooter.innerHTML = `Powered by <img src='${KKWooData.k2_logo_with_name_img}' alt='Kopo Kopo (Logo)' /> `;
-
-  // Assemble modal content
-  body.appendChild(content);
-  body.appendChild(modalFooter);
-
-  // Assemble overlay
-  overlay.appendChild(body);
-
-  // Append to body
-  document.body.appendChild(overlay);
-
-  return overlay;
-}
 

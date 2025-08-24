@@ -10,6 +10,7 @@
   --Primary-Navy-Blue-navy-blue-500: #27364E;
   --Secondary-Grey-grey-100: #EDEEF1;
   --Secondary-Grey-grey-50: #F7F8F8;
+  --Secondary-Error-error-500: #F04438;
   /* END OF COLORS */
 }
 
@@ -30,6 +31,37 @@ body:has(dialog[open]) {
   transform-origin: 50% 50%;
 }
 
+.k2 .main-info {
+  margin: 0;
+  margin-top: 32px;
+  margin-bottom: 8px;
+  color: var(--Primary-Navy-Blue-navy-blue-500);
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 28px;
+  text-align: center;
+}
+
+.k2 .side-note {
+  margin: 0;
+  margin-bottom: 24px;
+  color: var(--Primary-Navy-Blue-navy-blue-300);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  text-align: center;
+}
+
+.k2 .timer-info {
+  font-size: 14px;
+  line-height: 20px;
+  text-align: center;
+}
+
+.k2 #timer {
+  font-weight: 500;
+}
+
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
@@ -40,7 +72,23 @@ body:has(dialog[open]) {
 
 }
 
+/* MESSAGES */
+
+.k2 .message {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.k2 .error {
+  color: var(--Secondary-Error-error-500);
+}
+
+/* END OF MESSAGES */
+
 /* BUTTON*/
+
 button.k2 {
   padding: 12px 18px;
   border-radius: 8px;
@@ -50,15 +98,19 @@ button.k2 {
   width: 100%;
   font-weight: 600;
 }
+
 /* BUTTON */
 
 /* IMAGE */
+
 img.k2 {
   max-width: fit-content !important; /* done this to override woo commerce max-width: 100% which affects k2 images */
 }
+
 /* END IMAGE */
 
 /* MODAL */
+
 .k2.modal-overlay {
   font-family: "Poppins", sans-serif !important;
   width: 100vw;
@@ -68,7 +120,7 @@ img.k2 {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(23, 36, 58, 0.7);
+  background: #EDEEF1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -87,7 +139,6 @@ img.k2 {
   width: 100%;
   max-height: 90vh;
   overflow: auto;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   position: relative;
   animation: modalSlideIn 0.3s ease-out;
   box-sizing: border-box;
@@ -214,6 +265,25 @@ img.k2 {
 
 /* FORM */
 
+.k2 #mpesa-number-form .store-name {
+  position: absolute;
+  top: 38px;
+  right: 24px;
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  color: #999;
+  line-height: 1;
+  transition: color 0.2s;
+  height: 24px;
+  padding: 0;
+  max-width: 60%;        
+  white-space: nowrap;    
+  overflow: hidden;        
+  text-overflow: ellipsis;
+}
+
 .k2 label {
   color: var(--Primary-Navy-Blue-navy-blue-600);
   font-size: 14px;
@@ -268,25 +338,60 @@ img.k2 {
   align-items: center;
 }
 
-.k2 .main-info {
-  margin: 0;
-  margin-top: 32px;
-  margin-bottom: 8px;
-  color: var(--Primary-Navy-Blue-navy-blue-500);
-  font-size: 18px;
-  font-weight: 500;
-  line-height: 28px;
-  text-align: center;
-}
-
-.k2 .side-note {
-  margin: 0;
-  margin-bottom: 24px;
-  color: var(--Primary-Navy-Blue-navy-blue-300);
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 20px;
-  text-align: center;
-}
-
 /* END PIN INSTRUCTION SECTION */
+
+/* POLLING SECTION */
+
+.k2 #polling {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 32px;
+}
+
+/* END OF POLLING SECTION */
+
+/* SUCCESS INFO SECTION */
+
+.k2 #payment-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.k2 #payment-success .side-note {
+  margin-top: 32px;
+  margin-bottom: 12px;
+}
+/* END OF SUCCESS INFO SECTION */
+
+/* ERROR INFO SECTION */
+
+.k2 #payment-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 32px;
+}
+
+.k2 #payment-error .side-note {
+  margin-bottom: 0;
+}
+
+/* END OF ERROR INFO SECTION */
+
+/* NO PAYMENT RESULT RECEIVED SECTION */
+
+.k2 #payment-no-result-yet {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 32px;
+}
+
+.k2 #payment-no-result-yet .side-note {
+  margin-bottom: 0;
+}
+
+/* END OF NO PAYMENT RESULT RECEIVED SECTION */

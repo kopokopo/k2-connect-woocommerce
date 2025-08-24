@@ -14,7 +14,7 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
     public function __construct()
     {
         $this->id                 = 'kkwoo';
-        $this->icon               = '';
+        $this->icon               = KKWOO_PLUGIN_URL . 'images/svg/k2-logo.svg';
         $this->has_fields         = false;
         $this->method_title       = 'Kopo Kopo for WooCommerce';
         $this->method_description = 'Allows payments with Kopo Kopo for WooCommerce.';
@@ -37,9 +37,6 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
         // Hooks
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
 
-        add_action('woocommerce_thankyou_' . $this->id, [$this, 'thankyou_page']);
-
-
         add_action('admin_notices', [$this, 'admin_missing_settings_notice']);
         add_action('admin_notices', [$this, 'admin_currency_warning']);
 
@@ -58,13 +55,19 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
             'title'       => 'Title',
             'type'        => 'text',
             'description' => 'Title shown to customers at checkout.',
-            'default'     => 'Kopo Kopo for WooCommerce',
+            'default'     => 'Lipa na M-PESA',
           ],
           'description' => [
             'title'       => 'Description',
             'type'        => 'text',
             'description' => 'Description shown to customers at checkout.',
-            'default'     => 'Pay using Lipa na M-Pesa. Modal will appear after clicking “Lipa na M-Pesa”.',
+            'default'     => 'Pay using Lipa na M-PESA. Modal will appear after clicking “Lipa na M-PESA”.',
+            ],
+          'till_number' => [
+            'title'       => 'Till Number',
+            'type'        => 'text',
+            'description' => 'The till number to receive payments',
+            'default'     => '',
           ],
           'client_id' => [
             'title'       => 'Client ID',
@@ -101,9 +104,15 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
     {
         $order = wc_get_order($order_id);
 
+        $order->update_status('pending', 'Waiting for K2 payment...');
+
+        WC()->session->set('kkwoo_order_id', $order_id);
+
         return [
-            'result' => 'success',
-            //'redirect' => add_query_arg('show_stk_modal', 'yes', $this->get_return_url($order)),
+            'result'   => 'success',
+            'redirect' => home_url(add_query_arg([
+                'order_key'        => $order->get_order_key(),
+            ], '/lipa-na-mpesa-k2/')),
         ];
     }
 
@@ -131,12 +140,19 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
         return ! empty($this->settings['client_id']) &&
                ! empty($this->settings['client_secret']) &&
                ! empty($this->settings['api_key']) &&
+               ! empty($this->settings['till_number']) &&
                ! empty($this->settings['environment']);
     }
 
-    public function thankyou_page(): void
+    public function get_icon(): string
     {
-        echo "Thank you for the order.";
+        if (!is_admin()) {
+            $icon_url = KKWOO_PLUGIN_URL . 'images/mpesa-logo.png';
+            $icon_html = '<img src="' . esc_url($icon_url) . '" alt="' . esc_attr($this->title) . '" style="height:45px;"/>';
+            return apply_filters('woocommerce_gateway_icon', $icon_html, $this->id);
+        }
+
+        return parent::get_icon();
     }
 
 }

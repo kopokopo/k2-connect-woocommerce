@@ -3,7 +3,7 @@
 /*
 * Plugin Name: Kopo Kopo for WooCommerce
 * Plugin URI:
-* Description: A Kopo Kopo plugin that integrates seamlessly with your WooCommerce shop, enabling your customers to make secure and convenient payments directly to your Kopo Kopo M-Pesa till.
+* Description: A Kopo Kopo plugin that integrates seamlessly with your WooCommerce shop, enabling your customers to make secure and convenient payments directly to your Kopo Kopo M-PESA till.
 * Version: 0.1.0
 * Requires at least: 6.8.1
 * Requires PHP: 7.4
@@ -38,6 +38,10 @@ if (!defined('KKWOO_PLUGIN_URL')) {
     define('KKWOO_PLUGIN_URL', plugin_dir_url(__FILE__));
 }
 
+if (!defined('KKWOO_COUNTRY_CODE')) {
+    define('KKWOO_COUNTRY_CODE', '+254');
+}
+
 //TODO: MUST BE REMOVED - necessary for clearing caches in dev mode
 // Call it once
 add_action('init', 'kkwoo_clear_all_caches', 1);
@@ -61,6 +65,14 @@ function kkwoo_clear_all_caches()
 }
 //TODO: END OF MUST BE REMOVED
 
+register_activation_hook(__FILE__, function () {
+    (new K2_Payment_Page())->flush_rules();
+});
+
+register_deactivation_hook(__FILE__, function () {
+    (new K2_Payment_Page())->flush_rules();
+});
+
 // Register the gateway on plugins_loaded
 add_action('plugins_loaded', 'woocommerce_gateway_k2_payment_init', 0);
 function woocommerce_gateway_k2_payment_init()
@@ -80,6 +92,7 @@ function woocommerce_gateway_k2_payment_init()
 
     require_once __DIR__ . '/includes/class-wc-gateway-k2-payment.php';
     require_once __DIR__ . '/includes/class-k2-authorization.php';
+    require_once __DIR__ . '/includes/class-k2-payment-page.php';
 
     add_filter('woocommerce_payment_gateways', function ($methods) {
         $methods[] = 'WC_Gateway_K2_Payment';
@@ -173,7 +186,6 @@ add_action('wp_enqueue_scripts', function () {
         );
         wp_localize_script('kkwoo-ui-templates-init', 'KKWooData', $localized_data);
 
-
         wp_enqueue_script(
             'kkwoo-mpesa-number-form',
             plugin_dir_url(__FILE__) . 'assets/js/ui-templates/mpesa-number-form.js',
@@ -218,3 +230,57 @@ add_action('wp_enqueue_scripts', function () {
         }
     }
 });
+
+/**
+ * Load assets for virtual page - uses template_redirect because wp_enqueue_scripts fires before virtual page URL/params are available
+ * Virtual pages process URL rewriting AFTER wp_enqueue_scripts but BEFORE wp_loaded, creating a timing gap
+ * Must inject directly to wp_head/wp_footer since wp_enqueue_scripts hook has already fired
+ */
+
+add_action('template_redirect', 'enqueue_virtual_page_assets_late');
+function enqueue_virtual_page_assets_late()
+{
+    if (get_query_var('lipa_na_mpesa_k2')) {
+
+        $order_key = sanitize_text_field(get_query_var('order_key'));
+        $order_id  = wc_get_order_id_by_order_key($order_key);
+        $order     = wc_get_order($order_id);
+
+        if (!$order) {
+            return;
+        }
+
+        add_action('wp_footer', function () use ($order, $order_key) {
+            $localized_data = [
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'rest_url' => esc_url_raw(rest_url('kkwoo/v1/stk-push')),
+                'nonce'    => wp_create_nonce('wp_rest'),
+                'order_key' => $order_key,
+                'total_amount' => $order->get_total(),
+                'currency' => $order->get_currency(),
+                'store_name' => get_bloginfo('name'),
+                'order_received_url' => $order->get_checkout_order_received_url(),
+                'plugin_url' => plugins_url('', __FILE__),
+                'phone_icon' => plugins_url('images/svg/phone.svg', __FILE__),
+                'spinner_icon' => plugins_url('images/svg/spinner.svg', __FILE__),
+                'k2_logo_with_name_img' => plugins_url('images/k2-logo-with-name.png', __FILE__),
+                'kenyan_flag_img'    => plugins_url('images/kenyan-flag.png', __FILE__),
+                'error_circle_icon'    => plugins_url('images/svg/alert-circle.svg', __FILE__),
+                'success_circle_icon'    => plugins_url('images/svg/success-circle.svg', __FILE__),
+            ];
+
+            echo '<script type="text/javascript">' . "\n";
+            echo 'var KKWooData = ' . json_encode($localized_data) . ';' . "\n";
+            echo '</script>' . "\n";
+            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/ui-templates-init.js?v=1.0.0"></script>' . "\n";
+            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/mpesa-number-form.js?v=1.0.0"></script>' . "\n";
+            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/pin-instruction.js?v=1.0.0"></script>' . "\n";
+            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/polling.js?v=1.0.0"></script>' . "\n";
+            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/payment-success.js?v=1.0.0"></script>' . "\n";
+            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/payment-error.js?v=1.0.0"></script>' . "\n";
+            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/payment-no-result-yet.js?v=1.0.0"></script>' . "\n";
+            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/polling-manager.js?v=1.0.0"></script>' . "\n";
+            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/classic-checkout-handler.js?v=1.0.0"></script>' . "\n";
+        }, 10);
+    }
+}
