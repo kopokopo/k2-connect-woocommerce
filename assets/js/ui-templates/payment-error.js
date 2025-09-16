@@ -4,13 +4,14 @@
 (function(templates) {
     'use strict';
     
-    templates.PaymentError = function() {
+    templates.PaymentError = function(error_message) {
+        console.log(error_message);
       return`
          <div id='payment-error'>
             <img src='${templates.getImageUrl('error_circle_icon')}' alt='Error circle icon'/>
             <div>
-                <p class='main-info'>Payment declined</p>
-                <p class='side-note'>Please ensure that you have enough money on your M-PESA and try again.</p>
+                <p class='main-info'>Payment failed</p>
+                <p class='side-note'>${error_message ?? 'Unexpected error. Please try again.'}</p>
             </div>
             <div class="modal-actions">
                 <button

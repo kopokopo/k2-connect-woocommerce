@@ -14,7 +14,7 @@
             </div>
             <div class="modal-actions">
                 <button
-                id="retry-payment"
+                id="redirect-to-order"
                 class="k2 modal-btn close-modal modal-btn-confirm outline w-full"
                 >
                 Done

@@ -21,6 +21,9 @@ if (!defined('ABSPATH')) {
 
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/includes/rest-api.php';
+require_once __DIR__ . '/includes/class-k2-payment-page.php';
+require_once __DIR__ . '/includes/class-kkwoo-logger.php';
+require_once __DIR__ . '/includes/class-kkwoo-user-friendly-messages.php';
 
 if (!defined('KKWOO_SANDBOX_URL')) {
     define('KKWOO_SANDBOX_URL', 'https://sandbox.kopokopo.com');
@@ -92,7 +95,6 @@ function woocommerce_gateway_k2_payment_init()
 
     require_once __DIR__ . '/includes/class-wc-gateway-k2-payment.php';
     require_once __DIR__ . '/includes/class-k2-authorization.php';
-    require_once __DIR__ . '/includes/class-k2-payment-page.php';
 
     add_filter('woocommerce_payment_gateways', function ($methods) {
         $methods[] = 'WC_Gateway_K2_Payment';
@@ -153,56 +155,18 @@ function k2_register_block_payment_method()
     add_action('woocommerce_blocks_payment_method_type_registration', function ($registry) {
         $payment_method = new WC_Gateway_K2_Blocks();
         $registry->register($payment_method);
-        error_log("KKWOO: Payment method '{$payment_method->get_name()}' registered successfully");
     });
 
     require_once __DIR__ . '/includes/class-wc-block-integration-k2.php';
     if (class_exists(WC_Block_Integration_K2::class)) {
         add_action('woocommerce_blocks_checkout_block_registration', function ($integration_registry) {
             $integration_registry->register(new WC_Block_Integration_K2());
-            error_log("KKWOO: Block integration registered successfully");
         });
     }
 }
 
 add_action('wp_enqueue_scripts', function () {
     if (is_checkout()) {
-        $localized_data = [
-            'ajax_url'           => admin_url('admin-ajax.php'),
-            'rest_url'           => esc_url_raw(rest_url('kopo-kopo/v1/stk-push')),
-            'plugin_url'         => plugins_url('', __FILE__),
-            'k2_logo_with_name_img' => plugins_url('images/k2-logo-with-name.png', __FILE__),
-            'kenyan_flag_img'    => plugins_url('images/kenyan-flag.png', __FILE__),
-            'phone_icon' => plugins_url('images/svg/phone.svg', __FILE__),
-            'spinner_icon' => plugins_url('images/svg/spinner.svg', __FILE__),
-        ];
-
-        wp_enqueue_script(
-            'kkwoo-ui-templates-init',
-            plugin_dir_url(__FILE__) . 'assets/js/ui-templates/ui-templates-init.js',
-            ['jquery'],
-            '1.0',
-            true
-        );
-        wp_localize_script('kkwoo-ui-templates-init', 'KKWooData', $localized_data);
-
-        wp_enqueue_script(
-            'kkwoo-mpesa-number-form',
-            plugin_dir_url(__FILE__) . 'assets/js/ui-templates/mpesa-number-form.js',
-            ['jquery'],
-            '1.0',
-            true
-        );
-
-
-        wp_enqueue_script(
-            'kkwoo-pin-instruction',
-            plugin_dir_url(__FILE__) . 'assets/js/ui-templates/pin-instruction.js',
-            ['jquery'],
-            '1.0',
-            true
-        );
-
         wp_enqueue_script(
             'kkwoo-checkout-handler',
             plugin_dir_url(__FILE__) . 'assets/js/classic-checkout-handler.js',
@@ -210,7 +174,6 @@ add_action('wp_enqueue_scripts', function () {
             '1.0',
             true
         );
-        wp_localize_script('kkwoo-checkout-handler', 'KKWooData', $localized_data);
 
         wp_enqueue_style(
             'kkwoo-google-font',
@@ -256,10 +219,12 @@ function enqueue_virtual_page_assets_late()
                 'rest_url' => esc_url_raw(rest_url('kkwoo/v1/stk-push')),
                 'nonce'    => wp_create_nonce('wp_rest'),
                 'order_key' => $order_key,
+                'order_status' => $order->get_status(),
                 'total_amount' => $order->get_total(),
                 'currency' => $order->get_currency(),
                 'store_name' => get_bloginfo('name'),
                 'order_received_url' => $order->get_checkout_order_received_url(),
+                'this_order_url' => $order->get_view_order_url(),
                 'plugin_url' => plugins_url('', __FILE__),
                 'phone_icon' => plugins_url('images/svg/phone.svg', __FILE__),
                 'spinner_icon' => plugins_url('images/svg/spinner.svg', __FILE__),
@@ -280,7 +245,8 @@ function enqueue_virtual_page_assets_late()
             echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/payment-error.js?v=1.0.0"></script>' . "\n";
             echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/payment-no-result-yet.js?v=1.0.0"></script>' . "\n";
             echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/polling-manager.js?v=1.0.0"></script>' . "\n";
-            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/classic-checkout-handler.js?v=1.0.0"></script>' . "\n";
+            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/k2-validations.js?v=1.0.0"></script>' . "\n";
+            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/k2-payment-flow-handler.js?v=1.0.0"></script>' . "\n";
         }, 10);
     }
 }
