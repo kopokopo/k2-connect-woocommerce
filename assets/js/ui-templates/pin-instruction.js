@@ -19,6 +19,7 @@
             <button
               id="proceed-to-poll"
               class="k2 modal-btn close-modal modal-btn-confirm outline w-full"
+              disabled
             >
               Done
             </button>

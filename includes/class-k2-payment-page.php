@@ -43,7 +43,6 @@ class K2_Payment_Page
     */
     public function handle_k2_payment_page($template): string
     {
-        $logger = wc_get_logger();
         if (get_query_var('lipa_na_mpesa_k2')) {
 
             if (wp_is_block_theme()) {
@@ -56,8 +55,6 @@ class K2_Payment_Page
                 return $custom_template;
             }
 
-        } else {
-            $logger->debug('handle_k2_payment_page called but no query var.', ['source' => 'kkwoo']);
         }
         return $template;
     }

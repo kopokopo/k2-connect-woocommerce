@@ -36,6 +36,10 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
 
         // Hooks
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
+        add_action(
+            'woocommerce_update_options_payment_gateways_' . $this->id,
+            [$this, 'after_settings_updated']
+        );
 
         add_action('admin_notices', [$this, 'admin_missing_settings_notice']);
         add_action('admin_notices', [$this, 'admin_currency_warning']);
@@ -121,7 +125,9 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
     {
         if ('yes' === $this->get_option('enabled') && ! $this->is_configured()) {
             echo '<div class="notice notice-error"><p>';
-            echo esc_html('Kopo Kopo for WooCommerce is enabled but not fully configured.');
+            echo esc_html('Kopo Kopo for WooCommerce is enabled but not fully configured. Click ');
+            echo '<a href="' . esc_url(admin_url('admin.php?page=wc-settings&tab=checkout&section=kkwoo')) . '">here</a>';
+            echo esc_html(' to complete the setup.');
             echo '</p></div>';
         }
     }
@@ -153,6 +159,20 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
         }
 
         return parent::get_icon();
+    }
+
+    public function is_available(): bool
+    {
+        $is_available = ('yes' === $this->enabled);
+        if (!$this->is_configured() || ('KES' !== get_woocommerce_currency())) {
+            $is_available = false;
+        }
+        return $is_available;
+    }
+
+    public function after_settings_updated(): void
+    {
+        delete_transient('kopokopo_access_token');
     }
 
 }

@@ -36,9 +36,7 @@ if (!class_exists('K2_Authorization')) {
         private static function send_authorization_request($kkwoo): void
         {
             if (! method_exists($kkwoo, 'is_configured') || ! $kkwoo->is_configured()) {
-                if (defined('WP_DEBUG') && WP_DEBUG) {
-                    error_log('K2_Authorization: Gateway not configured properly.');
-                }
+                KKWoo_Logger::log('The Kopo Kopo Gateway is not fully configured. Ensure that you have updated the payment settings fields correctly.', 'error');
                 return;
             }
 

@@ -15,7 +15,14 @@ class WC_Gateway_K2_Blocks extends AbstractPaymentMethodType
     public function initialize(): void
     {
         $this->settings = get_option('woocommerce_my_custom_gateway_settings', []);
-        $this->gateway = new WC_Gateway_K2_Payment();
+        $gateways = WC()->payment_gateways()->payment_gateways();
+        if (isset($gateways['kkwoo'])) {
+            $this->gateway = $gateways['kkwoo'];
+        } else {
+            //If no gateway is available, it is likely that there is an issue in the K2 payment Gateway
+            $this->gateway = null;
+            KKWoo_Logger::log('WC_Gateway_K2_Payment was not instantiated when WC_Gateway_K2_Blocks initialize() ran.', 'error');
+        }
     }
 
     public function get_payment_method_script_handles(): array

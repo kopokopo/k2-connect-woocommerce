@@ -1,23 +1,20 @@
 
 <?php
 
-function kkwoo_send_stk_push($phone, $order_id)
+function kkwoo_send_stk_push($phone, $order)
 {
-    $order = wc_get_order($order_id);
-    if (!$order) {
-        return new WP_Error('invalid_order', 'Order not found.');
-    }
-
     $options     = get_option('woocommerce_kkwoo_settings', []);
     $till_number = isset($options['till_number']) ? $options['till_number'] : null;
 
     if (empty($till_number)) {
-        return new WP_Error('missing_till_number', 'Till number not configured.');
+        KKWoo_Logger::log(KKWoo_User_Friendly_Messages::get('till_number_missing'), 'error');
+        return new WP_Error('missing_till_number', KKWoo_User_Friendly_Messages::get('generic_customer_message'));
     }
 
     $access_token = K2_Authorization::get_access_token();
     if (empty($access_token)) {
-        return new WP_Error('auth_error', 'Failed to retrieve access token.');
+        KKWoo_Logger::log(KKWoo_User_Friendly_Messages::get('auth_token_error'), 'error');
+        return new WP_Error('auth_error', KKWoo_User_Friendly_Messages::get('generic_customer_message'));
     }
 
     $input = [
@@ -34,7 +31,7 @@ function kkwoo_send_stk_push($phone, $order_id)
             'reference'   => $order->get_order_key(),
             'notes'       => 'Payment for invoice ' . $order->get_id(),
         ],
-        'callbackUrl'    => rest_url('kkwoo/v1/stk-push-callback'),
+        'callbackUrl'    =>  rest_url('kkwoo/v1/stk-push-callback'),
         'accessToken'    => $access_token,
     ];
 
