@@ -31,6 +31,10 @@ body:has(dialog[open]) {
   transform-origin: 50% 50%;
 }
 
+.k2 svg.spinner.sm, .k2 img.spinner.sm {
+  width: 15px;
+}
+
 .k2 .main-info {
   margin: 0;
   margin-top: 32px;
@@ -62,6 +66,14 @@ body:has(dialog[open]) {
   font-weight: 500;
 }
 
+.k2 .w-fit, .k2.w-fit{
+  width: fit-content !important;
+}
+
+#kkwoo-flash-messages{
+  margin-bottom: 10px;
+}
+
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
@@ -90,6 +102,9 @@ body:has(dialog[open]) {
 /* BUTTON*/
 
 button.k2 {
+  display: inline-flex;
+  justify-content: center;
+  gap: 4px;
   padding: 12px 18px;
   border-radius: 8px;
   border: 1px solid var(--Secondary-Success-success-500);
@@ -101,6 +116,12 @@ button.k2 {
 
 button.k2:disabled {
   opacity: .7;
+}
+
+button.k2.outline:hover {
+  border: 1px solid var(--Primary-Navy-Blue-navy-blue-100);
+  background: var(--Secondary-Grey-grey-50);
+  box-shadow: 0 1px 2px 0 rgba(16, 24, 40, 0.05);
 }
 
 /* BUTTON */
@@ -431,3 +452,11 @@ img.k2 {
 }
 
 /* END OF PAYMENT REFUNDED SECTION */
+
+/* CHECK PAYMENT STATUS BUTTON */
+
+button.k2#check-payment-status {
+  margin-bottom: 10px;
+}
+
+/* END OF CHECK PAYMENT STATUS BUTTON */

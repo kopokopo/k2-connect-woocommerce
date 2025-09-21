@@ -25,7 +25,6 @@ class Test_WC_Gateway_K2_Payment extends WP_UnitTestCase
 
         // Set the id and option_key explicitly so init_settings() works properly
         $this->gateway->id = 'k2_gateway';
-        $this->gateway->option_key = 'woocommerce_k2_gateway_settings';
 
         // Define form fields (required before setting or loading settings)
         $this->gateway->init_form_fields();
@@ -42,6 +41,7 @@ class Test_WC_Gateway_K2_Payment extends WP_UnitTestCase
 
         $this->assertArrayHasKey('enabled', $fields);
         $this->assertArrayHasKey('title', $fields);
+        $this->assertArrayHasKey('till_number', $fields);
         $this->assertArrayHasKey('client_id', $fields);
         $this->assertArrayHasKey('client_secret', $fields);
         $this->assertArrayHasKey('api_key', $fields);
@@ -51,6 +51,7 @@ class Test_WC_Gateway_K2_Payment extends WP_UnitTestCase
     public function test_is_configured_returns_false_when_empty(): void
     {
         $this->gateway->settings = [
+            'till_number'   => '',
             'client_id'     => '',
             'client_secret' => '',
             'api_key'       => '',
@@ -64,6 +65,7 @@ class Test_WC_Gateway_K2_Payment extends WP_UnitTestCase
     public function test_is_configured_returns_true_when_all_set(): void
     {
         update_option('woocommerce_k2_gateway_settings', [
+            'till_number'   => 'K123456',
             'client_id'     => 'test_client',
             'client_secret' => 'test_secret',
             'api_key'       => 'test_api',
