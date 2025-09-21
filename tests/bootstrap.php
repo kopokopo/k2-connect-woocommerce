@@ -32,16 +32,21 @@ require_once dirname(__DIR__) . '/vendor/autoload.php';
 // Load WooCommerce before your plugin
 function _load_woocommerce_for_tests()
 {
-    require_once WP_PLUGIN_DIR . '/woocommerce/woocommerce.php';
+    $wc_file = WP_PLUGIN_DIR . '/woocommerce/woocommerce.php';
+    if (file_exists($wc_file)) {
+        require_once $wc_file;
+    } else {
+        die('WooCommerce not found at ' . $wc_file);
+    }
 }
-tests_add_filter('muplugins_loaded', '_load_woocommerce_for_tests');
+tests_add_filter('muplugins_loaded', '_load_woocommerce_for_tests', 5);
 
 // Load your plugin
 function _load_plugin_for_tests()
 {
     require_once dirname(__DIR__) . '/kopo-kopo-for-woocommerce.php';
 }
-tests_add_filter('muplugins_loaded', '_load_plugin_for_tests');
+tests_add_filter('muplugins_loaded', '_load_plugin_for_tests', 10);
 
 // Start up the WP testing environment.
 require "{$_tests_dir}/includes/bootstrap.php";

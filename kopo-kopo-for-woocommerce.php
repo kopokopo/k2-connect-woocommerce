@@ -24,6 +24,8 @@ require_once __DIR__ . '/includes/rest-api.php';
 require_once __DIR__ . '/includes/class-k2-payment-page.php';
 require_once __DIR__ . '/includes/class-kkwoo-logger.php';
 require_once __DIR__ . '/includes/class-kkwoo-user-friendly-messages.php';
+require_once __DIR__ . '/includes/class-wc-k2-check-payment-status.php';
+
 
 if (!defined('KKWOO_SANDBOX_URL')) {
     define('KKWOO_SANDBOX_URL', 'https://sandbox.kopokopo.com');
@@ -100,9 +102,12 @@ function woocommerce_gateway_k2_payment_init()
         $methods[] = 'WC_Gateway_K2_Payment';
         return $methods;
     });
+
+    new WC_K2_Check_Payment_Status();
 }
 
 add_action('woocommerce_checkout_init', ['K2_Authorization', 'maybe_authorize']);
+add_action('woocommerce_view_order', ['K2_Authorization', 'maybe_authorize'], 10, 1);
 
 
 add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'k2_wc_settings_link');
@@ -130,6 +135,16 @@ add_action('before_woocommerce_init', function () {
         );
     }
 });
+
+add_filter('woocommerce_currency_symbol', 'k2_custom_currency_symbol', 10, 2);
+
+function k2_custom_currency_symbol($currency_symbol, $currency)
+{
+    if ($currency === 'KES') {
+        $currency_symbol = 'KSh'; // Use KSh instead of default
+    }
+    return $currency_symbol;
+}
 
 add_action('woocommerce_blocks_loaded', 'k2_register_block_payment_method');
 function k2_register_block_payment_method()
@@ -192,6 +207,43 @@ add_action('wp_enqueue_scripts', function () {
             );
         }
     }
+
+    if (is_wc_endpoint_url('view-order') || is_wc_endpoint_url('order-received')) {
+        global $wp;
+        if (is_wc_endpoint_url('view-order')) {
+            $order_id = absint($wp->query_vars['view-order'] ?? 0);
+        }
+        if (is_wc_endpoint_url('order-received')) {
+            $order_id = absint($wp->query_vars['order-received'] ?? 0);
+        }
+        $order = $order_id ? wc_get_order($order_id) : null;
+        $localized_data = [
+            'query_incoming_payment_status' => esc_url_raw(rest_url('kkwoo/v1/query-incoming-payment-status')),
+            'nonce'    => wp_create_nonce('wp_rest'),
+            'order_key' => $order->get_order_key(),
+            'spinner_icon' => plugins_url('images/svg/spinner.svg', __FILE__),
+        ];
+
+        if ($order) {
+            wp_enqueue_script(
+                'kkwoo-order-view-handler',
+                plugin_dir_url(__FILE__) . 'assets/js/order-view-handler.js',
+                ['jquery'],
+                '1.1',
+                true
+            );
+            wp_localize_script('kkwoo-order-view-handler', 'KKWooData', $localized_data);
+
+            if (!function_exists('wc_get_container')) { // Not block checkout
+                wp_enqueue_style(
+                    'kkwoo-classic-style',
+                    plugins_url('assets/style.css', __FILE__),
+                    [],
+                    '1.0.0'
+                );
+            }
+        }
+    }
 });
 
 /**
@@ -224,7 +276,7 @@ function enqueue_virtual_page_assets_late()
                 'currency' => $order->get_currency(),
                 'store_name' => get_bloginfo('name'),
                 'order_received_url' => $order->get_checkout_order_received_url(),
-                'this_order_url' => $order->get_view_order_url(),
+                'this_order_url' => $order->get_user_id() ? $order->get_view_order_url() : $order->get_checkout_order_received_url(),
                 'plugin_url' => plugins_url('', __FILE__),
                 'phone_icon' => plugins_url('images/svg/phone.svg', __FILE__),
                 'spinner_icon' => plugins_url('images/svg/spinner.svg', __FILE__),

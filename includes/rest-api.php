@@ -1,5 +1,9 @@
 <?php
 
+if (! defined('ABSPATH')) {
+    exit;
+}
+
 add_action('rest_api_init', function () {
     register_rest_route('kkwoo/v1', '/stk-push', [
         'methods'  => 'POST',
@@ -27,6 +31,12 @@ add_action('rest_api_init', function () {
         'callback' => 'kkwoo_get_payment_status',
         'permission_callback' => '__return_true',
     ]);
+
+    register_rest_route('kkwoo/v1', '/query-incoming-payment-status', [
+        'methods' => 'GET',
+        'callback' => 'kkwoo_handle_query_incoming_payment_status',
+        'permission_callback' => '__return_true',
+    ]);
 });
 
 function kkwoo_handle_stk_push(WP_REST_Request $request)
@@ -46,7 +56,7 @@ function kkwoo_handle_stk_push(WP_REST_Request $request)
 
     if (!in_array($order->get_status(), ['pending', 'failed'], true)) {
         KKWoo_Logger::log(
-            sprintf( 'Customer attempted payment for order %d, but status is "%s".', $order->get_id(), $order->get_status() ),
+            sprintf('Customer attempted payment for order %d, but status is "%s".', $order->get_id(), $order->get_status()),
             'warning'
         );
         return new WP_REST_Response(['status' => 'error', 'data' => KKWoo_User_Friendly_Messages::get('invalid_order_status')], 400);
@@ -64,6 +74,8 @@ function kkwoo_handle_stk_push(WP_REST_Request $request)
 
     if (isset($response['status']) && $response['status'] === 'success') {
         $order->update_status('on-hold', KKWoo_User_Friendly_Messages::get('on_hold_status_update'));
+        $order->update_meta_data('kkwoo_payment_location', $response['location']);
+        $order->save();
 
         return new WP_REST_Response([
             'status'   => 'success',
@@ -110,12 +122,12 @@ function kkwoo_handle_stk_push_callback(WP_REST_Request $request)
         $order->payment_complete($event['id']);
         $order->add_order_note(sprintf(
             'Payment received via Kopo Kopo for WooCommerce. Amount: %s %s. Phone: %s',
-            $event['currency'],
+            get_woocommerce_currency_symbol($order->get_currency()),
             $event['amount'],
             $event['sender_phone_number']
         ));
 
-        // Necessary to update this to null when successful so as to remove error if earlier saved 
+        // Necessary to update this to null when successful so as to remove error if earlier saved
         $order->update_meta_data('kkwoo_payment_error_msg', '');
         $order->save();
         return new WP_REST_Response(['status' => 'success', 'message' => 'Payment processed'], 200);
@@ -138,4 +150,32 @@ function kkwoo_get_payment_status(WP_REST_Request $request)
         'status' => $order ? $order->get_status() : 'not_found',
         'data' => $order ? $order->get_meta('kkwoo_payment_error_msg', true) : '',
     ];
+}
+
+function kkwoo_handle_query_incoming_payment_status(WP_REST_Request $request)
+{
+    $order_key = sanitize_text_field($request->get_param('order_key'));
+
+    $order_id = wc_get_order_id_by_order_key($order_key);
+    if (!$order_id) {
+        return new WP_REST_Response(['status' => 'error', 'data' => KKWoo_User_Friendly_Messages::get('order_not_found')], 400);
+    }
+
+    $order = wc_get_order($order_id);
+    if (!$order) {
+        return new WP_REST_Response(['status' => 'error', 'data' => KKWoo_User_Friendly_Messages::get('order_not_found')], 404);
+    }
+
+    require_once __DIR__ . '/class-kkwoo-query-incoming-payment-service.php';
+    $checkPaymentStatusService = new KKWoo_Query_Incoming_Payment_Status_Service();
+    $response = $checkPaymentStatusService->query_incoming_payment_status($order);
+
+    if (is_wp_error($response)) {
+        return new WP_REST_Response([
+            'status' => 'error',
+            'data'   => $response->get_error_message(),
+        ], 500);
+    }
+
+    return $checkPaymentStatusService->process_payment_status_response($order, $response);
 }

@@ -66,3 +66,4 @@ bin/
 
 # Node related
 node_modules/
+tests/e2e/.env

@@ -1,6 +1,10 @@
 
 <?php
 
+if (! defined('ABSPATH')) {
+    exit;
+}
+
 function kkwoo_send_stk_push($phone, $order)
 {
     $options     = get_option('woocommerce_kkwoo_settings', []);
@@ -22,7 +26,7 @@ function kkwoo_send_stk_push($phone, $order)
         'tillNumber'     => $till_number,
         'firstName'      => $order->get_billing_first_name(),
         'lastName'       => $order->get_billing_last_name(),
-        'phoneNumber'    => KKWOO_COUNTRY_CODE.$phone,
+        'phoneNumber'    => KKWOO_COUNTRY_CODE . $phone,
         'currency'       => get_option('woocommerce_currency'),
         'amount'         => $order->get_total(),
         'email'          => $order->get_billing_email(),
