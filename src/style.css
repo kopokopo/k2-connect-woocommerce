@@ -237,6 +237,16 @@ img.k2 {
   line-height: 20px;
 }
 
+@media screen and (max-width: 375px) {
+  .k2 .modal-body {
+    padding: 24px 16px;  
+  }
+
+  .k2 .modal-title {
+    font-size: 15px;  
+  }
+}
+
 /* END OF MODAL */
 
 
@@ -335,6 +345,7 @@ img.k2 {
 @media screen and (max-width: 480px){
   .k2 #mpesa-number-form .store-name {
     max-width: 40%;
+    font-size: 14px;
   }
 }
 
@@ -405,3 +416,18 @@ img.k2 {
 }
 
 /* END OF NO PAYMENT RESULT RECEIVED SECTION */
+
+/* PAYMENT REFUNDED SECTION */
+
+.k2 #payment-refunded {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 32px;
+}
+
+.k2 #payment-refunded .side-note {
+  margin-bottom: 0;
+}
+
+/* END OF PAYMENT REFUNDED SECTION */

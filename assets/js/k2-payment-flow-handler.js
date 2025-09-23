@@ -128,7 +128,7 @@ window.addEventListener("beforeunload", function (e) {
     });
 
 
-    // Initial setup --- Order statuses -> pending, on-hold, processing, completed, failed, cancelled
+    // Initial setup --- Order statuses -> pending, on-hold, processing, completed, failed, cancelled, refunded
     const orderStatus = KKWooData.order_status;
     if(orderStatus === "pending" || orderStatus === "failed"){
       renderSection(templates.MpesaNumberForm);
@@ -136,6 +136,10 @@ window.addEventListener("beforeunload", function (e) {
     }else if(orderStatus === "on-hold"){
       autoRefreshPage = true;
       renderSection(templates.PaymentNoResultYet);
+      populateCheckoutInfo();
+    }else if(orderStatus === "refunded"){
+      autoRefreshPage = true;
+      renderSection(templates.PaymentRefunded);
       populateCheckoutInfo();
     }else if(orderStatus === "processing" || orderStatus === "completed" || orderStatus === "cancelled" ) {
       window.location.href = KKWooData.this_order_url;
