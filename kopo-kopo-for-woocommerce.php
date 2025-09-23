@@ -232,6 +232,7 @@ function enqueue_virtual_page_assets_late()
                 'kenyan_flag_img'    => plugins_url('images/kenyan-flag.png', __FILE__),
                 'error_circle_icon'    => plugins_url('images/svg/alert-circle.svg', __FILE__),
                 'success_circle_icon'    => plugins_url('images/svg/success-circle.svg', __FILE__),
+                'info_circle_icon'    => plugins_url('images/svg/info-circle.svg', __FILE__),
             ];
 
             echo '<script type="text/javascript">' . "\n";
@@ -244,6 +245,7 @@ function enqueue_virtual_page_assets_late()
             echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/payment-success.js?v=1.0.0"></script>' . "\n";
             echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/payment-error.js?v=1.0.0"></script>' . "\n";
             echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/payment-no-result-yet.js?v=1.0.0"></script>' . "\n";
+            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/payment-refunded.js?v=1.0.0"></script>' . "\n";
             echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/polling-manager.js?v=1.0.0"></script>' . "\n";
             echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/k2-validations.js?v=1.0.0"></script>' . "\n";
             echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/k2-payment-flow-handler.js?v=1.0.0"></script>' . "\n";
