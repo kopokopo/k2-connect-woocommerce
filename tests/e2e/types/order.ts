@@ -1,0 +1,75 @@
+export interface WooCommerceOrder {
+  id: number;
+  parent_id: number;
+  number: string;
+  order_key: string;
+  created_via: string;
+  version: string;
+  status: string;
+  currency: string;
+  date_created: string;
+  date_modified: string;
+  discount_total: string;
+  discount_tax: string;
+  shipping_total: string;
+  shipping_tax: string;
+  cart_tax: string;
+  total: string;
+  total_tax: string;
+  prices_include_tax: boolean;
+  customer_id: number;
+  customer_ip_address: string;
+  customer_user_agent: string;
+  customer_note: string;
+  billing: {
+    first_name: string;
+    last_name: string;
+    company: string;
+    address_1: string;
+    address_2: string;
+    city: string;
+    state: string;
+    postcode: string;
+    country: string;
+    email: string;
+    phone: string;
+  };
+  shipping: {
+    first_name: string;
+    last_name: string;
+    company: string;
+    address_1: string;
+    address_2: string;
+    city: string;
+    state: string;
+    postcode: string;
+    country: string;
+  };
+  payment_method: string;
+  payment_method_title: string;
+  transaction_id: string;
+  line_items: {
+    id: number;
+    name: string;
+    product_id: number;
+    variation_id: number;
+    quantity: number;
+    tax_class: string;
+    subtotal: string;
+    subtotal_tax: string;
+    total: string;
+    total_tax: string;
+    taxes: any[];
+    meta_data: any[];
+    sku: string;
+    price: number;
+    parent_name?: string;
+  }[];
+  shipping_lines: any[];
+  fee_lines: any[];
+  coupon_lines: any[];
+  refunds: any[];
+  date_created_gmt: string;
+  date_modified_gmt: string;
+  currency_symbol?: string; // WooCommerce adds this in some cases
+}

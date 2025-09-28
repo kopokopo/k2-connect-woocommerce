@@ -60,13 +60,21 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
             'type'        => 'text',
             'description' => 'Title shown to customers at checkout.',
             'default'     => 'Lipa na M-PESA',
+            'custom_attributes' => [
+              'readonly' => 'readonly',
+            ],
+            'css' => 'background-color: #f5f5f5; color: #666;',
           ],
           'description' => [
             'title'       => 'Description',
             'type'        => 'text',
             'description' => 'Description shown to customers at checkout.',
             'default'     => 'Pay using Lipa na M-PESA. Modal will appear after clicking “Lipa na M-PESA”.',
+            'custom_attributes' => [
+              'readonly' => 'readonly',
             ],
+            'css' => 'background-color: #f5f5f5; color: #666;',
+          ],
           'till_number' => [
             'title'       => 'Till Number',
             'type'        => 'text',
@@ -107,10 +115,7 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
     public function process_payment($order_id): array
     {
         $order = wc_get_order($order_id);
-
         $order->update_status('pending', 'Waiting for K2 payment...');
-
-        WC()->session->set('kkwoo_order_id', $order_id);
 
         return [
             'result'   => 'success',
@@ -132,9 +137,19 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
         }
     }
 
+    public function wp_is_admin(): bool
+    {
+      return is_admin();
+    }
+
+    public function wp_get_currency(): string
+    {
+      return get_woocommerce_currency();
+    }
+
     public function admin_currency_warning(): void
     {
-        if (is_admin() && get_woocommerce_currency() !== 'KES' && $this->enabled === 'yes') {
+        if ($this->wp_is_admin() && get_woocommerce_currency() !== 'KES' && $this->enabled === 'yes') {
             echo '<div class="notice notice-warning"><p>';
             echo esc_html('Kopo Kopo for WooCommerce requires your store currency to be Kenyan Shillings (KES). Please update it under WooCommerce → Settings → General.');
             echo '</p></div>';
@@ -152,7 +167,7 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
 
     public function get_icon(): string
     {
-        if (!is_admin()) {
+        if (!$this->wp_is_admin()) {
             $icon_url = KKWOO_PLUGIN_URL . 'images/mpesa-logo.png';
             $icon_html = '<img src="' . esc_url($icon_url) . '" alt="' . esc_attr($this->title) . '" style="height:45px;"/>';
             return apply_filters('woocommerce_gateway_icon', $icon_html, $this->id);
@@ -164,7 +179,7 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
     public function is_available(): bool
     {
         $is_available = ('yes' === $this->enabled);
-        if (!$this->is_configured() || ('KES' !== get_woocommerce_currency())) {
+        if (!$this->is_configured() || ('KES' !== $this->wp_get_currency())) {
             $is_available = false;
         }
         return $is_available;
@@ -174,5 +189,4 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
     {
         delete_transient('kopokopo_access_token');
     }
-
 }

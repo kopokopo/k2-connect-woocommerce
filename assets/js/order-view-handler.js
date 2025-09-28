@@ -6,7 +6,7 @@
     const spinner = $(`<img src='${KKWooData.spinner_icon}' alt='Spinner icon' class='k2 spinner sm'/>`);
 
     $.ajax({
-      url: KKWooData.query_incoming_payment_status,
+      url: "/wp-json/kkwoo/v1/query-incoming-payment-status",
       method: "GET",
       data: { order_key: KKWooData.order_key },
       dataType: "json",
