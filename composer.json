@@ -11,6 +11,9 @@
   ],  "config": {
     "preferred-install": "source"
   },
+  "scripts": {
+    "test": "phpunit"
+  },
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require-dev": {

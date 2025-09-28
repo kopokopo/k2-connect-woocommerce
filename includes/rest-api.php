@@ -11,15 +11,6 @@ add_action('rest_api_init', function () {
         'permission_callback' => '__return_true',
     ]);
 
-    register_rest_route('kkwoo/v1', '/get-session-order', [
-        'methods'  => 'GET',
-        'callback' => function () {
-            $order_id = WC()->session->get('kkwoo_order_id');
-            return ['order_id' => $order_id];
-        },
-        'permission_callback' => '__return_true',
-    ]);
-
     register_rest_route('kkwoo/v1', '/stk-push-callback', [
         'methods'  => 'POST',
         'callback' => 'kkwoo_handle_stk_push_callback',
@@ -98,10 +89,12 @@ function kkwoo_handle_stk_push_callback(WP_REST_Request $request)
         return new WP_REST_Response(['status' => 'error', 'message' => 'Invalid callback data'], 400);
     }
 
-    $attributes = $payload['data']['attributes'];
-    $metadata   = $attributes['metadata'];
-    $event      = $attributes['event']['resource'] ?? [];
-    $status     = $attributes['status'];
+    $attributes = $payload['data']['attributes'] ?? [];
+    $metadata   = $attributes['metadata'] ?? [];
+    $event      = $attributes['event'] ?? [];
+    $status     = $attributes['status'] ?? '';
+    $resource   = $event['resource'] ?? [];
+    $errors     = $event['errors'] ?? [];
     $reference  = $metadata['reference'] ?? null;
 
     if (!$reference) {
@@ -117,14 +110,22 @@ function kkwoo_handle_stk_push_callback(WP_REST_Request $request)
 
     $order = wc_get_order($order_id);
 
-    if ($status === 'Success' && isset($event['status']) && $event['status'] === 'Received') {
+    if (!in_array($order->get_status(), ['on-hold'], true)) {
+        KKWoo_Logger::log(
+            sprintf('Cannot complete payment of order %d, with status "%s".', $order->get_id(), $order->get_status()),
+            'warning'
+        );
+        return new WP_REST_Response(['status' => 'error', 'data' => KKWoo_User_Friendly_Messages::get('invalid_order_status')], 400);
+    }
+
+    if ($status === 'Success' && isset($resource['status']) && $resource['status'] === 'Received') {
         // Mark order as paid
-        $order->payment_complete($event['id']);
+        $order->payment_complete($resource['id']);
         $order->add_order_note(sprintf(
             'Payment received via Kopo Kopo for WooCommerce. Amount: %s %s. Phone: %s',
-            get_woocommerce_currency_symbol($order->get_currency()),
-            $event['amount'],
-            $event['sender_phone_number']
+            $resource['currency'] ?? '',
+            $resource['amount'] ?? '',
+            $resource['sender_phone_number'] ?? ''
         ));
 
         // Necessary to update this to null when successful so as to remove error if earlier saved
@@ -134,9 +135,9 @@ function kkwoo_handle_stk_push_callback(WP_REST_Request $request)
     } else {
         // Payment failed or was cancelled
         $order->update_status('failed', KKWoo_User_Friendly_Messages::get('failed_status_update'));
-        $order->update_meta_data('kkwoo_payment_error_msg', $attributes['event']['errors']);
+        $order->update_meta_data('kkwoo_payment_error_msg', $errors);
         $order->save();
-        return new WP_REST_Response(['status' => 'error', 'message' => $attributes['event']['errors']], 200);
+        return new WP_REST_Response(['status' => 'error', 'message' => $errors], 200);
     }
 }
 

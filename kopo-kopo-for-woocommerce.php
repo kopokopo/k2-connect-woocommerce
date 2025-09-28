@@ -218,7 +218,6 @@ add_action('wp_enqueue_scripts', function () {
         }
         $order = $order_id ? wc_get_order($order_id) : null;
         $localized_data = [
-            'query_incoming_payment_status' => esc_url_raw(rest_url('kkwoo/v1/query-incoming-payment-status')),
             'nonce'    => wp_create_nonce('wp_rest'),
             'order_key' => $order->get_order_key(),
             'spinner_icon' => plugins_url('images/svg/spinner.svg', __FILE__),
@@ -268,12 +267,11 @@ function enqueue_virtual_page_assets_late()
         add_action('wp_footer', function () use ($order, $order_key) {
             $localized_data = [
                 'ajax_url' => admin_url('admin-ajax.php'),
-                'rest_url' => esc_url_raw(rest_url('kkwoo/v1/stk-push')),
                 'nonce'    => wp_create_nonce('wp_rest'),
                 'order_key' => $order_key,
                 'order_status' => $order->get_status(),
                 'total_amount' => $order->get_total(),
-                'currency' => $order->get_currency(),
+                'currency' => get_woocommerce_currency_symbol($order->get_currency()),
                 'store_name' => get_bloginfo('name'),
                 'order_received_url' => $order->get_checkout_order_received_url(),
                 'this_order_url' => $order->get_user_id() ? $order->get_view_order_url() : $order->get_checkout_order_received_url(),

@@ -61,42 +61,54 @@ window.addEventListener("beforeunload", function (e) {
       },
       onFailure: (data) => {
         const errorMessage = data.data;
-        console.log('on failure data: ', errorMessage)
-        renderSection(()=>templates.PaymentError(errorMessage));
+        renderSection(() => templates.PaymentError(errorMessage));
       },
       onNoResult: () => {
         autoRefreshPage = true;
         renderSection(templates.PaymentNoResultYet);
       },
     };
-  
-    async function initiatePayment(phone) {
-      try {
-        const response = await fetch(KKWooData.rest_url, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-WP-Nonce": KKWooData.nonce,
-          },
-          body: JSON.stringify({ phone, order_key: KKWooData.order_key }),
-        });
 
-        const data = await response.json();
+    function initiatePayment(phone) {
+      $.ajax({
+        url: "/wp-json/kkwoo/v1/stk-push",
+        method: "POST",
+        contentType: "application/json",
+        headers: {
+          "X-WP-Nonce": KKWooData.nonce,
+        },
+        data: JSON.stringify({
+          phone: phone,
+          order_key: KKWooData.order_key,
+        }),
+        success: function () {
+          $("#proceed-to-poll").prop("disabled", false);
 
-        if (response.ok) {
-          $('#proceed-to-poll').prop('disabled', false);
-          PollingManager.timeout = setTimeout(() => {
-            PollingManager.start(DefaultPollingCallbacks, "pin-instruction", false);
+          PollingManager.timeout = setTimeout(function () {
+            PollingManager.start(
+              DefaultPollingCallbacks,
+              "pin-instruction",
+              false
+            );
           }, 40 * 1000);
-        } else {
+        },
+        error: function (jqXHR) {
           PollingManager.stop();
-          const errorMessage = data.data.data.errorMessage ?? data.data;
-          renderSection(()=>templates.PaymentError(errorMessage));
-        }
-      } catch (err) {
-          PollingManager.stop();
-          renderSection(templates.PaymentError);
-      }
+
+          let errorMessage;
+          try {
+            const response = jqXHR.responseJSON;
+            errorMessage =
+              response?.data?.data?.errorMessage ??
+              response?.data ??
+              "Something went wrong. Please try again.";
+          } catch (e) {
+            errorMessage = "Something went wrong. Please try again.";
+          }
+
+          renderSection(() => templates.PaymentError(errorMessage));
+        },
+      });
     }
 
     $(document).on("click", "#proceed-to-pay-btn", (e) => {
@@ -145,5 +157,3 @@ window.addEventListener("beforeunload", function (e) {
       window.location.href = KKWooData.this_order_url;
     }
 })(jQuery, window.KKWooTemplates, window.KKWooValidations);
-
-
