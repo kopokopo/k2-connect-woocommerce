@@ -7,7 +7,16 @@ use Kopokopo\SDK\K2;
 if (!class_exists('K2_Authorization')) {
     class K2_Authorization
     {
-        public static function maybe_authorize(): void
+        /**
+        * Handles authorization for Kopo Kopo requests.
+        *
+        * Checks if the Kopo Kopo WooCommerce gateway is enabled and,
+        * if needed, obtains a new access token by sending an authorization request.
+        *
+        * @param bool $must_authorize Optional. If true, forces re-authorization even if an access token exists. Default is false.
+        * @return void
+        * */
+        public static function maybe_authorize($must_authorize = false): void
         {
             if (!function_exists('WC')) {
                 return;
@@ -20,7 +29,8 @@ if (!class_exists('K2_Authorization')) {
 
                 if ($kkwoo->get_option('enabled') === 'yes') {
                     $access_token = get_transient('kopokopo_access_token');
-                    if (!$access_token) {
+                    if (!$access_token || $must_authorize) {
+                        $must_authorize && delete_transient('kopokopo_access_token');
                         self::send_authorization_request($kkwoo);
                     }
                 }

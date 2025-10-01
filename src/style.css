@@ -8,6 +8,8 @@
   --Primary-Navy-Blue-navy-blue-600: #233147;
   --Primary-Navy-Blue-navy-blue-900: #101721;
   --Primary-Navy-Blue-navy-blue-500: #27364E;
+  --Secondary-Dark-Blue-dark-blue-50: #EDF6FC;
+  --Secondary-Dark-Blue-dark-blue-500: #4BA3DE;
   --Secondary-Grey-grey-100: #EDEEF1;
   --Secondary-Grey-grey-50: #F7F8F8;
   --Secondary-Error-error-500: #F04438;
@@ -105,6 +107,7 @@ button.k2 {
   display: inline-flex;
   justify-content: center;
   gap: 4px;
+  font-family: "Poppins", sans-serif !important;
   padding: 12px 18px;
   border-radius: 8px;
   border: 1px solid var(--Secondary-Success-success-500);
@@ -112,6 +115,16 @@ button.k2 {
   color: white;
   width: 100%;
   font-weight: 600;
+}
+
+.k2 button.link {
+  color: var(--Secondary-Dark-Blue-dark-blue-500);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  text-decoration-line: underline;
+  text-underline-offset: 2px;
+  border: none;
 }
 
 button.k2:disabled {
@@ -146,6 +159,7 @@ img.k2 {
   right: 0;
   bottom: 0;
   background: #EDEEF1;
+  flex-direction: column;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -300,7 +314,7 @@ img.k2 {
 
 /* FORM */
 
-.k2 #mpesa-number-form .store-name {
+.k2 #mpesa-number-form .store-name, .k2 #manual-payment-instructions .store-name {
   position: absolute;
   top: 38px;
   right: 24px;
@@ -326,7 +340,7 @@ img.k2 {
   line-height: 20px;
 }
 
-.k2 .amount-input {
+.k2 .amount-input, .k2 .mpesa-ref-input {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -364,7 +378,7 @@ img.k2 {
 }
 
 @media screen and (max-width: 480px){
-  .k2 #mpesa-number-form .store-name {
+  .k2 #mpesa-number-form .store-name, .k2 #manual-payment-instructions .store-name {
     max-width: 40%;
     font-size: 14px;
   }
@@ -421,6 +435,13 @@ img.k2 {
   margin-bottom: 0;
 }
 
+.k2 .switch-to-manual-payments {
+  color: var(--Primary-Navy-Blue-navy-blue-500);
+  font-size: 16px;
+  line-height: 24px;
+  text-align: center;
+}
+
 /* END OF ERROR INFO SECTION */
 
 /* NO PAYMENT RESULT RECEIVED SECTION */
@@ -460,3 +481,38 @@ button.k2#check-payment-status {
 }
 
 /* END OF CHECK PAYMENT STATUS BUTTON */
+
+/* MANUAL PAYMENTS SECTION */
+
+.k2 #manual-payment-instructions .payment-instructions {
+  font-family: "Poppins", sans-serif !important;
+  display: flex;
+  padding: 16px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  align-self: stretch;
+  border-radius: 8px;
+  border: 1px solid var(--Secondary-Dark-Blue-dark-blue-500);
+  background: var(--Secondary-Dark-Blue-dark-blue-50);
+  margin-bottom: 32px;
+}
+
+.k2 #manual-payment-instructions .payment-instructions .title {
+  margin-bottom: 8px;
+  color: var(--Primary-Navy-Blue-navy-blue-500);
+  font-weight: 600;
+  line-height: 140%; /* 22.4px */
+}
+
+.k2 #manual-payment-instructions .payment-instructions ol.instructions {
+  margin: 0;
+  padding: 0 16px;
+  color: var(--Primary-Navy-Blue-navy-blue-500);
+}
+
+.k2 #manual-payment-instructions .payment-instructions .highlight {
+  font-weight: 600;
+}
+
+/* END OF MANUAL PAYMENTS SECTION */

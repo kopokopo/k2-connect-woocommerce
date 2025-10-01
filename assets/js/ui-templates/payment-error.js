@@ -5,7 +5,6 @@
     'use strict';
     
     templates.PaymentError = function(error_message) {
-        console.log(error_message);
       return`
          <div id='payment-error'>
             <img src='${templates.getImageUrl('error_circle_icon')}' alt='Error circle icon'/>

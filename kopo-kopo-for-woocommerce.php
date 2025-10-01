@@ -24,7 +24,12 @@ require_once __DIR__ . '/includes/rest-api.php';
 require_once __DIR__ . '/includes/class-k2-payment-page.php';
 require_once __DIR__ . '/includes/class-kkwoo-logger.php';
 require_once __DIR__ . '/includes/class-kkwoo-user-friendly-messages.php';
+require_once __DIR__ . '/includes/class-kkwoo-activation-hook-service.php';
 require_once __DIR__ . '/includes/class-wc-k2-check-payment-status.php';
+require_once __DIR__ . '/includes/k2-authorization-rest-api.php';
+require_once __DIR__ . '/includes/k2-webhooks-rest-api.php';
+require_once __DIR__ . '/includes/k2-manual-payments-rest-api.php';
+require_once __DIR__ . '/includes/class-kkwoo-manual-payments-tracker-repository.php';
 
 
 if (!defined('KKWOO_SANDBOX_URL')) {
@@ -71,11 +76,11 @@ function kkwoo_clear_all_caches()
 //TODO: END OF MUST BE REMOVED
 
 register_activation_hook(__FILE__, function () {
-    (new K2_Payment_Page())->flush_rules();
+    KKWoo_Activation_Service::activate();
 });
 
 register_deactivation_hook(__FILE__, function () {
-    (new K2_Payment_Page())->flush_rules();
+    K2_Payment_Page::flush_rules();
 });
 
 // Register the gateway on plugins_loaded
@@ -104,6 +109,7 @@ function woocommerce_gateway_k2_payment_init()
     });
 
     new WC_K2_Check_Payment_Status();
+    new K2_Payment_Page();
 }
 
 add_action('woocommerce_checkout_init', ['K2_Authorization', 'maybe_authorize']);
@@ -145,6 +151,14 @@ function k2_custom_currency_symbol($currency_symbol, $currency)
     }
     return $currency_symbol;
 }
+
+add_action('woocommerce_init', function () {
+    $gateways = WC()->payment_gateways()->payment_gateways();
+    if (isset($gateways['kkwoo'])) {
+        $kkwoo = $gateways['kkwoo'];
+        $kkwoo->kkwoo_register_gateway_hooks();
+    }
+});
 
 add_action('woocommerce_blocks_loaded', 'k2_register_block_payment_method');
 function k2_register_block_payment_method()
@@ -260,11 +274,31 @@ function enqueue_virtual_page_assets_late()
         $order_id  = wc_get_order_id_by_order_key($order_key);
         $order     = wc_get_order($order_id);
 
+        $gateways = WC()->payment_gateways()->payment_gateways();
+        $kkwoo = $gateways['kkwoo'];
+        $enable_manual_payments      = $kkwoo->get_option('enable_manual_payments');
+        $manual_payments_till_no     = $kkwoo->get_option('manual_payments_till_no');
+        $paybill_business_no         = $kkwoo->get_option('paybill_business_no');
+        $paybill_account_no          = $kkwoo->get_option('paybill_account_no');
+
+        if ('yes' === $enable_manual_payments && !empty($manual_payments_till_no)) {
+            $selected_manual_payment_method = 'till';
+        } elseif (
+            'yes' === $enable_manual_payments &&
+            empty($manual_payments_till_no) &&
+            !empty($paybill_business_no) &&
+            !empty($paybill_account_no)
+        ) {
+            $selected_manual_payment_method = 'paybill';
+        } else {
+            $selected_manual_payment_method = '';
+        }
+
         if (!$order) {
             return;
         }
 
-        add_action('wp_footer', function () use ($order, $order_key) {
+        add_action('wp_footer', function () use ($order, $order_key, $selected_manual_payment_method) {
             $localized_data = [
                 'ajax_url' => admin_url('admin-ajax.php'),
                 'nonce'    => wp_create_nonce('wp_rest'),
@@ -273,6 +307,7 @@ function enqueue_virtual_page_assets_late()
                 'total_amount' => $order->get_total(),
                 'currency' => get_woocommerce_currency_symbol($order->get_currency()),
                 'store_name' => get_bloginfo('name'),
+                'selected_manual_payment_method' => $selected_manual_payment_method,
                 'order_received_url' => $order->get_checkout_order_received_url(),
                 'this_order_url' => $order->get_user_id() ? $order->get_view_order_url() : $order->get_checkout_order_received_url(),
                 'plugin_url' => plugins_url('', __FILE__),
@@ -296,6 +331,7 @@ function enqueue_virtual_page_assets_late()
             echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/payment-error.js?v=1.0.0"></script>' . "\n";
             echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/payment-no-result-yet.js?v=1.0.0"></script>' . "\n";
             echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/payment-refunded.js?v=1.0.0"></script>' . "\n";
+            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/manual-payment-instructions.js?v=1.0.0"></script>' . "\n";
             echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/polling-manager.js?v=1.0.0"></script>' . "\n";
             echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/k2-validations.js?v=1.0.0"></script>' . "\n";
             echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/k2-payment-flow-handler.js?v=1.0.0"></script>' . "\n";

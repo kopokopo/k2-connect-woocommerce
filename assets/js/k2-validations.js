@@ -16,4 +16,16 @@
     $error.hide();
     return true;
   }
+
+  window.KKWooValidations.validMpesaRefNo  = (mpesaRefNo) => {
+    const $error = $(".message.error");
+
+    if (!mpesaRefNo) {
+      $error.text("M-PESA reference number is required.").show();
+      return false;
+    }
+  
+    $error.hide();
+    return true;
+  }
 })(jQuery)
