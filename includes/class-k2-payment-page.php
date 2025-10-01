@@ -4,12 +4,12 @@ class K2_Payment_Page
 {
     public function __construct()
     {
-        add_action('init', array( $this, 'add_rewrite_rules' ));
+        add_action('init', [self::class, 'add_rewrite_rules']);
         add_filter('template_include', array( $this, 'handle_k2_payment_page' ));
         add_filter('query_vars', array( $this, 'add_query_vars' ));
     }
 
-    public function add_rewrite_rules(): void
+    public static function add_rewrite_rules(): void
     {
         add_rewrite_rule(
             '^lipa-na-mpesa-k2/?$',
@@ -59,11 +59,9 @@ class K2_Payment_Page
         return $template;
     }
 
-    public function flush_rules(): void
+    public static function flush_rules(): void
     {
-        $this->add_rewrite_rules();
+        self::add_rewrite_rules();
         flush_rewrite_rules();
     }
 }
-
-new K2_Payment_Page();

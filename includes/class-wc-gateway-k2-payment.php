@@ -10,6 +10,10 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
     protected string $client_secret;
     protected string $api_key;
     protected string $environment;
+    protected string $enable_manual_payments;
+    protected string $manual_payments_till_no;
+    protected string $paybill_business_no;
+    protected string $paybill_account_no;
 
     public function __construct()
     {
@@ -33,17 +37,10 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
         $this->client_secret      = $this->get_option('client_secret');
         $this->api_key            = $this->get_option('api_key');
         $this->environment        = $this->get_option('environment');
-
-        // Hooks
-        add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
-        add_action(
-            'woocommerce_update_options_payment_gateways_' . $this->id,
-            [$this, 'after_settings_updated']
-        );
-
-        add_action('admin_notices', [$this, 'admin_missing_settings_notice']);
-        add_action('admin_notices', [$this, 'admin_currency_warning']);
-
+        $this->enable_manual_payments = $this->get_option('enable_manual_payments');
+        $this->manual_payments_till_no = $this->get_option('manual_payments_till_no');
+        $this->paybill_business_no = $this->get_option('paybill_business_no');
+        $this->paybill_account_no = $this->get_option('paybill_account_no');
     }
 
     public function init_form_fields(): void
@@ -78,7 +75,7 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
           'till_number' => [
             'title'       => 'Till Number',
             'type'        => 'text',
-            'description' => 'The till number to receive payments',
+            'description' => 'The till number to receive payments via STK Push',
             'default'     => '',
           ],
           'client_id' => [
@@ -109,7 +106,62 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
               'production' => 'Production (Live)',
             ],
           ],
+          'manual_payment_option_notice' => [
+              'title'       => 'Manual Payments Settings',
+              'type'        => 'title',
+              'description' => '⚠️ Please provide either Till OR Paybill details. If both are provided, the Till option will be used.',
+          ],
+          'enable_manual_payments' => [
+            'title'       => 'Enable/Disable Manual Payments',
+            'label'       => 'Enable Manual Payments to specified Till or Paybill numbers.',
+            'description' => 'Manual payments acts as a fallback option to STK Push. Whenever a customer is unable to complete a payment with STK Push, this option will be presented to them if enabled.',
+            'type'        => 'checkbox',
+            'default'     => 'no'
+           ],
+          'manual_payment_method' => [
+              'title'       => 'Manual Payment Method',
+              'type'        => 'select',
+              'description' => 'Choose either Till OR Paybill.',
+              'default'     => 'till',
+              'options'     => [
+                  'till'    => 'Till',
+                  'paybill' => 'Paybill',
+              ],
+          ],
+          'manual_payments_till_no' => [
+            'title'    => 'Till number (optional)',
+            'type'     => 'text',
+            'description' => 'The till number to receive payments via manual payment to Till.',
+            'default'  => '',
+          ],
+          'paybill_business_no' => [
+            'title'    => 'Paybill Business Number (optional)',
+            'description' => 'The paybill number to receive payments via manual payment to Paybill.',
+            'default'  => '',
+            'type'     => 'text',
+          ],
+          'paybill_account_no' => [
+            'title'    => 'Paybill Account Number (optional)',
+            'description' => 'The paybill account number to receive payments via manual payment to Paybill.',
+            'default'  => '',
+            'type'     => 'text',
+          ],
         ];
+    }
+
+
+    public function kkwoo_register_gateway_hooks(): void
+    {
+        add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
+        add_action(
+            'woocommerce_update_options_payment_gateways_' . $this->id,
+            [$this, 'after_settings_updated']
+        );
+
+        add_action('admin_notices', [$this, 'admin_missing_settings_notice']);
+        add_action('admin_notices', [$this, 'admin_currency_warning']);
+
+        add_action('woocommerce_after_settings_checkout', [$this, 'render_custom_payment_gateway_settings_buttons']);
     }
 
     public function process_payment($order_id): array
@@ -135,6 +187,24 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
             echo esc_html(' to complete the setup.');
             echo '</p></div>';
         }
+
+        if ('yes' === $this->settings['enable_manual_payments'] && ! $this->is_configured_for_manual_payments()) {
+            echo '<div class="notice notice-error"><p>';
+            echo esc_html('Kopo Kopo for WooCommerce is enabled to receive manual payments but not fully configured with Paybill or Till. Click ');
+            echo '<a href="' . esc_url(admin_url('admin.php?page=wc-settings&tab=checkout&section=kkwoo')) . '">here</a>';
+            echo esc_html(' to complete the setup.');
+            echo '</p></div>';
+        }
+    }
+
+    public function wp_is_admin(): bool
+    {
+        return is_admin();
+    }
+
+    public function wp_get_currency(): string
+    {
+        return get_woocommerce_currency();
     }
 
     public function wp_is_admin(): bool
@@ -165,6 +235,12 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
                ! empty($this->settings['environment']);
     }
 
+    public function is_configured_for_manual_payments(): bool
+    {
+        return  ! empty($this->settings['manual_payments_till_no']) ||
+               (! empty($this->settings['paybill_business_no']) && ! empty($this->settings['paybill_account_no']));
+    }
+
     public function get_icon(): string
     {
         if (!$this->wp_is_admin()) {
@@ -187,6 +263,16 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
 
     public function after_settings_updated(): void
     {
-        delete_transient('kopokopo_access_token');
+        K2_Authorization::maybe_authorize(true);
+    }
+
+    public function render_custom_payment_gateway_settings_buttons(): void
+    {
+        $section = $_GET['section'] ?? '';
+        if ($section !== $this->id) {
+            return;
+        }
+
+        include plugin_dir_path(__FILE__) . 'templates/k2_custom_payment_gateway_settings_sections.php';
     }
 }

@@ -4,13 +4,13 @@
 (function(templates) {
     'use strict';
     
-    templates.PaymentNoResultYet= function() {
+    templates.PaymentNoResultYet= function(message) {
       return`
          <div id='payment-no-result-yet'>
             <img src='${templates.getImageUrl('info_circle_icon')}' alt='Error circle icon'/>
             <div>
                 <p class='main-info'>Waiting to receive funds</p>
-                <p class='side-note'>Your payment is being processed. Your order will be updated once complete.</p>
+                <p class='side-note'>${message ?? "Your payment is being processed. Your order will be updated once complete."}</p>
             </div>
             <div class="modal-actions">
                 <button
