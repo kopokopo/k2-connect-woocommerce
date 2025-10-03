@@ -1,0 +1,115 @@
+name: Test Kopo Kopo for WooCommerce Plugin
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+          - php: 8.2
+            wp:  6.7
+            wc:  9.2.0 
+
+    name: PHP ${{ matrix.php }} | WP ${{ matrix.wp }} | WC ${{ matrix.wc }}
+
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: wordpress_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    env:
+      DB_NAME: wordpress_test
+      DB_USER: root
+      DB_PASS: root
+      DB_HOST: 127.0.0.1
+      WP_VERSION: ${{ matrix.wp }}
+      WC_VERSION: ${{ matrix.wc }}
+      PHP_VERSION: ${{ matrix.php }}
+      CI: true
+      WP_TESTS_DIR: /tmp/wordpress-tests-lib
+      WP_CORE_DIR: /tmp/wordpress
+
+    steps:
+      - name: Checkout plugin
+        uses: actions/checkout@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mbstring, mysqli
+          coverage: none
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install SVN (needed for WP test suite)
+        run: sudo apt-get update && sudo apt-get install -y subversion
+
+      - name: Wait for MySQL to be ready
+        run: |
+          for i in {1..10}; do
+            mysqladmin ping -h"$DB_HOST" --silent && break
+            echo "Waiting for MySQL to start..."
+            sleep 3
+          done
+
+      - name: Install WP test environment
+        run: |
+          bash bin/install-wp-tests.sh $DB_NAME $DB_USER $DB_PASS $DB_HOST $WP_VERSION
+
+      - name: Install WP-CLI
+        run: |
+          curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+          chmod +x wp-cli.phar
+          sudo mv wp-cli.phar /usr/local/bin/wp
+
+      - name: Create wp-config.php for WP-CLI
+        run: |
+          wp --path=$WP_CORE_DIR config create \
+            --dbname=$DB_NAME \
+            --dbuser=$DB_USER \
+            --dbpass=$DB_PASS \
+            --dbhost=$DB_HOST \
+            --skip-check \
+            --allow-root
+
+      - name: Install WordPress site (for WP-CLI)
+        run: |
+          wp --path=$WP_CORE_DIR core install \
+            --url="http://localhost" \
+            --title="Test Site" \
+            --admin_user="admin" \
+            --admin_password="password" \
+            --admin_email="admin@example.com" \
+            --skip-email \
+            --allow-root
+      
+      - name: Install WooCommerce ${{ matrix.wc }}
+        run: |
+          wp --path=$WP_CORE_DIR plugin install woocommerce --version=${{ matrix.wc }} --activate --allow-root
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Run PHPUnit
+        run: vendor/bin/phpunit --bootstrap=tests/bootstrap.php --configuration=phpunit.xml.dist
+
+      - name: Remove WP-CLI (optional cleanup)
+        run: sudo rm /usr/local/bin/wp
