@@ -52,7 +52,7 @@ vendor/
 
 # PHPUnit cache and logs
 .phpunit.result.cache
-bin/
+bin/setup-test-env.sh
 
 # PHP CS Fixer cache
 .php-cs-fixer.cache
