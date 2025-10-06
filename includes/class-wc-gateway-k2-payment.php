@@ -207,16 +207,6 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
         return get_woocommerce_currency();
     }
 
-    public function wp_is_admin(): bool
-    {
-      return is_admin();
-    }
-
-    public function wp_get_currency(): string
-    {
-      return get_woocommerce_currency();
-    }
-
     public function admin_currency_warning(): void
     {
         if ($this->wp_is_admin() && get_woocommerce_currency() !== 'KES' && $this->enabled === 'yes') {
