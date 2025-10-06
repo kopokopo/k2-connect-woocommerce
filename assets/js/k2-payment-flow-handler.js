@@ -96,7 +96,7 @@ window.addEventListener("beforeunload", function (e) {
       },
       onFailure: (data) => {
         const errorMessage = data.data;
-        renderSection(() => templates.PaymentError(errorMessage));
+        renderSection(() => templates.PaymentError(errorMessage), true);
       },
       onNoResult: () => {
         autoRefreshPage = true;
