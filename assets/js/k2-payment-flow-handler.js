@@ -280,4 +280,16 @@ window.addEventListener("beforeunload", function (e) {
       autoRefreshPage = true;
       window.location.href = KKWooData.this_order_url;
     }
+
+    $(document).ready(function () {
+      if ($('body').hasClass('admin-bar')) {
+        var adminBarHeight = $('#wpadminbar').outerHeight();
+        
+        $('body').css('margin-top', adminBarHeight + 'px');
+        $('.modal-overlay').css({
+          'height': 'calc(100vh - ' + adminBarHeight + 'px)',
+          'top': adminBarHeight + 'px'
+        });
+      }
+    });
 })(jQuery, window.KKWooTemplates, window.KKWooValidations);
