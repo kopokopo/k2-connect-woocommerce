@@ -83,5 +83,10 @@ class WC_K2_Check_Payment_Status
             echo '<div class="notice notice-info is-dismissible"><p>' . esc_html($message) . '</p></div>';
             delete_transient('kkwoo_admin_notice');
         }
+
+        if ($error = get_transient('kkwoo_admin_error')) {
+            echo '<div class="notice notice-error is-dismissible"><p>' . esc_html($error) . '</p></div>';
+            delete_transient('kkwoo_admin_error');
+        }
     }
 }

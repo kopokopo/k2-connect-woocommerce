@@ -103,7 +103,7 @@ class KKWoo_Query_Incoming_Payment_Status_Service
         KKWoo_Logger::log($message, 'error');
 
         // Store message in transient so we can show it in admin notice
-        set_transient('kkwoo_admin_notice', $message, 30);
+        set_transient('kkwoo_admin_error', $message, 30);
     }
 
     /**
@@ -134,15 +134,19 @@ class KKWoo_Query_Incoming_Payment_Status_Service
             case 'Failed':
                 self::process_failed_response($order, $data['errors']);
 
-                $message = $data['errors'];
+                $error = $data['errors'];
                 break;
 
             default:
-                $message = sprintf('Unknown payment status: %s', $data['status']);
+                $error = sprintf('Unknown payment status: %s', $data['status']);
         }
 
         // Show in WooCommerce admin as a notice
-        set_transient('kkwoo_admin_notice', $message, 30);
+        if (isset($error) && $error !== '') {
+            set_transient('kkwoo_admin_error', $error, 30);
+        } else {
+            set_transient('kkwoo_admin_notice', $message, 30);
+        }
     }
 
     /**
