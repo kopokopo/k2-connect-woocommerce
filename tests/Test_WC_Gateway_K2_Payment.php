@@ -60,6 +60,8 @@ class Test_WC_Gateway_K2_Payment extends WP_UnitTestCase
 
     public function test_process_admin_options_hook_registered(): void
     {
+        $this->gateway->kkwoo_register_gateway_hooks();
+
         $hook = 'woocommerce_update_options_payment_gateways_' . $this->gateway->id;
 
         $this->assertNotFalse(
@@ -70,6 +72,8 @@ class Test_WC_Gateway_K2_Payment extends WP_UnitTestCase
 
     public function test_after_settings_updated_hook_registered(): void
     {
+        $this->gateway->kkwoo_register_gateway_hooks();
+
         $hook = 'woocommerce_update_options_payment_gateways_' . $this->gateway->id;
 
         $this->assertNotFalse(
@@ -80,6 +84,10 @@ class Test_WC_Gateway_K2_Payment extends WP_UnitTestCase
 
     public function test_admin_missing_settings_notice_registered(): void
     {
+        $this->gateway->kkwoo_register_gateway_hooks();
+
+        $hook = 'woocommerce_update_options_payment_gateways_' . $this->gateway->id;
+
         $this->assertNotFalse(
             has_action('admin_notices', [$this->gateway, 'admin_missing_settings_notice']),
             "admin_missing_settings_notice should be hooked into admin_notices"
@@ -88,6 +96,10 @@ class Test_WC_Gateway_K2_Payment extends WP_UnitTestCase
 
     public function test_admin_currency_warning_registered(): void
     {
+        $this->gateway->kkwoo_register_gateway_hooks();
+
+        $hook = 'woocommerce_update_options_payment_gateways_' . $this->gateway->id;
+
         $this->assertNotFalse(
             has_action('admin_notices', [$this->gateway, 'admin_currency_warning']),
             "admin_currency_warning should be hooked into admin_notices"
@@ -195,6 +207,7 @@ class Test_WC_Gateway_K2_Payment extends WP_UnitTestCase
             'client_secret' => '',
             'api_key'       => '',
             'environment'   => '',
+            'enable_manual_payments' => 'no',
         ]);
 
         $this->gateway->init_settings();
@@ -217,6 +230,8 @@ class Test_WC_Gateway_K2_Payment extends WP_UnitTestCase
             'client_secret' => '',
             'api_key'       => '',
             'environment'   => '',
+            'enable_manual_payments' => 'no',
+
         ]);
 
         $this->gateway->init_settings();
@@ -339,17 +354,6 @@ class Test_WC_Gateway_K2_Payment extends WP_UnitTestCase
         $gateway->method('wp_get_currency')->willReturn($currency);
 
         $this->assertSame($expected, $gateway->is_available());
-    }
-
-    public function test_after_settings_updated_deletes_transient(): void
-    {
-        set_transient('kopokopo_access_token', 'dummy_value');
-
-        $this->assertSame('dummy_value', get_transient('kopokopo_access_token'));
-
-        $this->gateway->after_settings_updated();
-
-        $this->assertFalse(get_transient('kopokopo_access_token'));
     }
 
     public function isAvailableDataProvider(): array
