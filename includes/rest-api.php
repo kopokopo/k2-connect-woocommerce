@@ -178,5 +178,9 @@ function kkwoo_handle_query_incoming_payment_status(WP_REST_Request $request)
         ], 500);
     }
 
+    if ($response instanceof WP_REST_Response) {
+        return $response;
+    }
+
     return $checkPaymentStatusService->process_payment_status_response($order, $response);
 }

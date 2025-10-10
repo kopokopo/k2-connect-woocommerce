@@ -125,6 +125,7 @@ button.k2 {
   text-decoration-line: underline;
   text-underline-offset: 2px;
   border: none;
+  cursor: pointer;
 }
 
 button.k2:disabled {
@@ -152,8 +153,9 @@ img.k2 {
 .k2.modal-overlay {
   font-family: "Poppins", sans-serif !important;
   width: 100vw;
-  height: 100vh;
-  position: fixed;
+  min-height: 100vh;
+  height: fit-content;
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;
@@ -166,7 +168,7 @@ img.k2 {
   z-index: 9999;
   padding: 20px;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow: scroll;
 }
 
 .k2 .modal-body {
@@ -176,7 +178,7 @@ img.k2 {
   padding: 32px 24px;
   max-width: 500px;
   width: 100%;
-  max-height: 90vh;
+  height: fit-content;
   overflow: auto;
   position: relative;
   animation: modalSlideIn 0.3s ease-out;
@@ -507,7 +509,7 @@ button.k2#check-payment-status {
 
 .k2 #manual-payment-instructions .payment-instructions ol.instructions {
   margin: 0;
-  padding: 0 16px;
+  padding: 0 28px;
   color: var(--Primary-Navy-Blue-navy-blue-500);
 }
 

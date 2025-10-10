@@ -45,7 +45,7 @@ class Manual_Payments_Tracker_repository
         return $result;
     }
 
-    public static function get_by_mpesa_ref(string $mpesa_ref_no): array|null
+    public static function get_by_mpesa_ref(string $mpesa_ref_no): ?array
     {
         global $wpdb;
 

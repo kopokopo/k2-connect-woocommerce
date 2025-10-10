@@ -20,12 +20,13 @@ class KKWoo_User_Friendly_Messages
     'payment_processed' => 'Your payment has been processed.',
     'payment_still_on_hold' => 'We’re waiting to receive your payment. Once it’s confirmed, your order will be updated.',
     'mpesa_ref_missing' => 'M-PESA reference number is required.',
-    'mpesa_ref_submitted' => 'The payment reference number has been submitted. The order will be updated once the payment has been verified.',
+    'mpesa_ref_submitted' => 'The payment reference number has been sent. The order will be updated once the payment has been verified.',
     'mpesa_ref_submission_error' => 'An error occurred while submitting the M-PESA reference number. Please try again or contact the owner of the site.',
     'webhook_failed_invalid_paybill_or_till' => 'No valid till or paybill account found to subscribe to webhooks.',
     'webhook_subscription_failed' => 'One or more webhook subscriptions failed. Check logs for details.',
     'subscribed_to_webhooks' => 'Webhook subscriptions created successfully.',
     'webhook_subscription_error' => 'An error occurred while creating webhook subscriptions. Check logs for details.',
+    'manual_payment_check_status_unavailable' => 'This order was placed using Manual Payments via Lipa na M-PESA. Please wait while the payment is being verified, or contact the site owner to confirm the payment status.'
     ];
 
     /*

@@ -38,9 +38,9 @@ class WC_K2_Check_Payment_Status
     *
     * @param WC_Order  $order
     *
-    * @return void
+    * @return WP_REST_Response|null
     */
-    public function wc_k2_check_payment_status_action(WC_Order $order): void
+    public function wc_k2_check_payment_status_action(WC_Order $order)
     {
         if (! $order instanceof WC_Order) {
             return;
@@ -53,6 +53,10 @@ class WC_K2_Check_Payment_Status
         if (is_wp_error($response)) {
             $checkPaymentStatusService->handle_admin_payment_status_error($order, $response);
             return;
+        }
+
+        if ($response instanceof WP_REST_Response) {
+            return $response;
         }
 
         $checkPaymentStatusService->process_admin_payment_status_response($order, $response);
