@@ -287,7 +287,7 @@ window.addEventListener("beforeunload", function (e) {
         
         $('body').css('margin-top', adminBarHeight + 'px');
         $('.modal-overlay').css({
-          'height': 'calc(100vh - ' + adminBarHeight + 'px)',
+          'min-height': 'calc(100vh - ' + adminBarHeight + 'px)',
           'top': adminBarHeight + 'px'
         });
       }

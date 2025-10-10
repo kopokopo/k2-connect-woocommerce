@@ -77,7 +77,7 @@ function create_webhook_subscription($event_type, $till = null): bool
     }
 }
 
-function handle_create_webhook_subscriptions(): WP_REST_Response|WP_Error
+function handle_create_webhook_subscriptions()
 {
     try {
         $gateways = \WC()->payment_gateways()->payment_gateways();

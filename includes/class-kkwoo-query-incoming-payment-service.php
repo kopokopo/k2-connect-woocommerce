@@ -6,10 +6,16 @@ if (! defined('ABSPATH')) {
 
 class KKWoo_Query_Incoming_Payment_Status_Service
 {
-    public function query_incoming_payment_status(WC_Order $order): WP_Error | array
+    public function query_incoming_payment_status(WC_Order $order)
     {
         $location_url = $order->get_meta('kkwoo_payment_location');
         if (empty($location_url)) {
+            if (!$order->has_status('pending')) {
+                return new WP_REST_Response([
+                    'status'  => 'success',
+                    'message' => KKWoo_User_Friendly_Messages::get('manual_payment_check_status_unavailable'),
+                ], 200);
+            }
             KKWoo_Logger::log(KKWoo_User_Friendly_Messages::get('location_url_missing'), 'error');
             return new WP_Error('missing_location_url', KKWoo_User_Friendly_Messages::get('generic_customer_message'));
         }
