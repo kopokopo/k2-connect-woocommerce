@@ -30,7 +30,12 @@ require_once __DIR__ . '/includes/k2-authorization-rest-api.php';
 require_once __DIR__ . '/includes/k2-webhooks-rest-api.php';
 require_once __DIR__ . '/includes/k2-manual-payments-rest-api.php';
 require_once __DIR__ . '/includes/class-kkwoo-manual-payments-tracker-repository.php';
+require_once __DIR__ . '/includes/class-kkwoo-manual-payments-service.php';
 
+if (!defined('KKWOO_PLUGIN_VERSION')) {
+    $plugin_data = get_file_data(__FILE__, ['Version' => 'Version']);
+    define('KKWOO_PLUGIN_VERSION', $plugin_data['Version']);
+}
 
 if (!defined('KKWOO_SANDBOX_URL')) {
     define('KKWOO_SANDBOX_URL', 'https://sandbox.kopokopo.com');
@@ -320,21 +325,24 @@ function enqueue_virtual_page_assets_late()
                 'info_circle_icon'    => plugins_url('images/svg/info-circle.svg', __FILE__),
             ];
 
+            $is_dev = defined('WP_DEBUG') && WP_DEBUG; // true for local dev
+            $asset_version = $is_dev ? time() : KKWOO_PLUGIN_VERSION;
+
             echo '<script type="text/javascript">' . "\n";
             echo 'var KKWooData = ' . json_encode($localized_data) . ';' . "\n";
             echo '</script>' . "\n";
-            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/ui-templates-init.js?v=1.0.0"></script>' . "\n";
-            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/mpesa-number-form.js?v=1.0.0"></script>' . "\n";
-            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/pin-instruction.js?v=1.0.0"></script>' . "\n";
-            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/polling.js?v=1.0.0"></script>' . "\n";
-            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/payment-success.js?v=1.0.0"></script>' . "\n";
-            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/payment-error.js?v=1.0.0"></script>' . "\n";
-            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/payment-no-result-yet.js?v=1.0.0"></script>' . "\n";
-            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/payment-refunded.js?v=1.0.0"></script>' . "\n";
-            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/manual-payment-instructions.js?v=1.0.0"></script>' . "\n";
-            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/polling-manager.js?v=1.0.0"></script>' . "\n";
-            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/k2-validations.js?v=1.0.0"></script>' . "\n";
-            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/k2-payment-flow-handler.js?v=1.0.0"></script>' . "\n";
+            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/ui-templates-init.js?v=' . $asset_version . '"></script>' . "\n";
+            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/mpesa-number-form.js?v=' . $asset_version . '"></script>' . "\n";
+            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/pin-instruction.js?v=' . $asset_version . '"></script>' . "\n";
+            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/polling.js?v=' . $asset_version . '"></script>' . "\n";
+            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/payment-success.js?v=' . $asset_version . '"></script>' . "\n";
+            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/payment-error.js?v=' . $asset_version . '"></script>' . "\n";
+            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/payment-no-result-yet.js?v=' . $asset_version . '"></script>' . "\n";
+            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/payment-refunded.js?v=' . $asset_version . '"></script>' . "\n";
+            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/manual-payment-instructions.js?v=' . $asset_version . '"></script>' . "\n";
+            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/polling-manager.js?v=' . $asset_version . '"></script>' . "\n";
+            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/k2-validations.js?v=' . $asset_version . '"></script>' . "\n";
+            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/k2-payment-flow-handler.js?v=' . $asset_version . '"></script>' . "\n";
         }, 10);
     }
 }

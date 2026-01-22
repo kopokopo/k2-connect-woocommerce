@@ -7,9 +7,11 @@ if (!defined('ABSPATH')) {
 }
 
 use KKWoo_Logger;
+use WC_Order;
 use WP_REST_Request;
 use WP_REST_Response;
 use KKWoo\Database\Manual_Payments_Tracker_repository;
+use KKWoo\ManualPayments\Manual_Payment_Service;
 
 add_action('rest_api_init', function () {
     register_rest_route('kkwoo/v1', '/save-manual-payment-details', [
@@ -62,25 +64,58 @@ function handle_save_manual_payment_details(WP_REST_Request $request): WP_REST_R
             ], 400);
         }
 
-        $create_record_result = Manual_Payments_Tracker_repository::insert($order_id, $mpesa_ref_no);
+        $payment_tracker = Manual_Payments_Tracker_repository::get_by_mpesa_ref($mpesa_ref_no);
 
-        if (!$create_record_result) {
+        if ($payment_tracker && $payment_tracker['order_id'] && $payment_tracker['order_id'] !== 0 && $payment_tracker['order_id'] !== $order_id) {
             return new WP_REST_Response([
                 'status'  => 'error',
                 'message' => \KKWoo_User_Friendly_Messages::get('mpesa_ref_submission_error')
             ], 500);
         }
 
-        $order->update_status('on-hold', \KKWoo_User_Friendly_Messages::get('on_hold_status_update'));
-        $order->add_order_note(sprintf(
-            'The M-PESA reference number provided by the customer for this order is: %s',
-            $mpesa_ref_no
-        ));
-        $order->update_meta_data('kkwoo_payment_location', '');
-        $order->save();
+        $upsert_result = Manual_Payments_Tracker_repository::upsert(
+            $order_id,
+            $mpesa_ref_no,
+        );
+
+        if (!$upsert_result) {
+            return new WP_REST_Response([
+                'status'  => 'error',
+                'message' => \KKWoo_User_Friendly_Messages::get('mpesa_ref_submission_error')
+            ], 500);
+        }
+
+        place_order_on_hold($order, $mpesa_ref_no);
+        $webhook_payload = $payment_tracker['webhook_payload'] ?? null;
+
+        if (!empty($webhook_payload)) {
+            $decoded_payload = json_decode($webhook_payload, true);
+
+            if (is_array($decoded_payload)) {
+                $manual_payment_service = new Manual_Payment_Service();
+                $manual_payment_service->complete($order, $decoded_payload['data']);
+            }
+
+            $order_status = $order->get_status();
+            if ($order_status == 'processing' || $order_status == 'completed') {
+                $amount = $order->get_total();
+                $currency = get_woocommerce_currency_symbol($order->get_currency());
+                $store_name = get_bloginfo('name');
+
+                return new WP_REST_Response([
+                    'status'  => 'success',
+                    'message' => sprintf(
+                        'You have paid %s %s to %s',
+                        $currency,
+                        $amount,
+                        $store_name
+                    ),
+                ], 200);
+            }
+        }
 
         return new WP_REST_Response([
-            'status'  => 'success',
+            'status'  => 'info',
             'message' => \KKWoo_User_Friendly_Messages::get('mpesa_ref_submitted')
         ], 200);
 
@@ -127,4 +162,15 @@ function get_selected_manual_payment_method(): WP_REST_Response
         'message' => \KKWoo_User_Friendly_Messages::get('generic_unexpected_error_occured')
     ], 500);
 
+}
+
+function place_order_on_hold(WC_Order $order, string $mpesa_ref_no)
+{
+    $order->update_status('on-hold', \KKWoo_User_Friendly_Messages::get('on_hold_status_update'));
+    $order->add_order_note(sprintf(
+        'The M-PESA reference number provided by the customer for this order is: %s',
+        $mpesa_ref_no
+    ));
+    $order->update_meta_data('kkwoo_payment_location', '');
+    $order->save();
 }
