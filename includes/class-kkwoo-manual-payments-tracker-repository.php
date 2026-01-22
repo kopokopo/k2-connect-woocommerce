@@ -14,7 +14,7 @@ class Manual_Payments_Tracker_repository
 
         $sql = "CREATE TABLE $table_name (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    order_id BIGINT UNSIGNED NOT NULL UNIQUE,
+    order_id BIGINT UNSIGNED UNIQUE,
     mpesa_ref_no VARCHAR(50) NOT NULL UNIQUE,
     webhook_payload LONGTEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -25,24 +25,38 @@ class Manual_Payments_Tracker_repository
         dbDelta($sql);
     }
 
-    public static function insert(int $order_id, string $mpesa_ref_no): bool
+    public static function upsert(int $order_id = null, string $mpesa_ref_no, string $webhook_payload = null): bool
     {
         global $wpdb;
 
-        $wpdb->hide_errors(); // Prevent showing HTML error blocks
+        $table = $wpdb->prefix . self::$base_table_name;
 
-        $result = $wpdb->insert(
-            $wpdb->prefix . self::$base_table_name,
-            [
-                'order_id'     => $order_id,
-                'mpesa_ref_no' => $mpesa_ref_no,
-            ],
-            [
-                '%d',
-                '%s',
-            ]
+        $wpdb->hide_errors();  // Prevent showing HTML error blocks
+
+        $success = $wpdb->query(
+            $wpdb->prepare(
+                "INSERT INTO $table (mpesa_ref_no, order_id, webhook_payload)
+                VALUES (%d, %s, %s)
+                ON DUPLICATE KEY UPDATE
+                order_id = CASE
+                    WHEN VALUES(order_id) IS NOT NULL AND VALUES(order_id) != 0 THEN VALUES(order_id)
+                    ELSE order_id
+                END,
+                webhook_payload = CASE
+                    WHEN VALUES(webhook_payload) IS NOT NULL AND VALUES(webhook_payload) != '' THEN VALUES(webhook_payload)
+                    ELSE webhook_payload
+                END",
+                $mpesa_ref_no,
+                $order_id,
+                $webhook_payload,
+            )
         );
-        return $result;
+
+        if ($success === false) {
+            error_log("DB upsert failed: " . $wpdb->last_error);
+        }
+
+        return $wpdb->rows_affected !== false;
     }
 
     public static function get_by_mpesa_ref(string $mpesa_ref_no): ?array
@@ -56,40 +70,5 @@ class Manual_Payments_Tracker_repository
             $wpdb->prepare("SELECT * FROM $table WHERE mpesa_ref_no = %s LIMIT 1", $mpesa_ref_no),
             ARRAY_A
         );
-    }
-
-
-    public static function update_by_id(int $id, array $data): bool
-    {
-        global $wpdb;
-
-        // Full table name
-        $table = $wpdb->prefix . self::$base_table_name;
-
-        // Define formats dynamically based on values
-        $formats = [];
-        foreach ($data as $value) {
-            if (is_int($value)) {
-                $formats[] = '%d';
-            } elseif (is_float($value)) {
-                $formats[] = '%f';
-            } else {
-                $formats[] = '%s';
-            }
-        }
-
-        // Where clause
-        $where = ['id' => $id];
-        $where_format = ['%d'];
-
-        $result = $wpdb->update(
-            $table,
-            $data,
-            $where,
-            $formats,
-            $where_format
-        );
-
-        return $result !== false;
     }
 }

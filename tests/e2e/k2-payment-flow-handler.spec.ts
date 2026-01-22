@@ -1,6 +1,7 @@
 import { Browser, BrowserContext, chromium, Page } from "@playwright/test";
 import { test, expect } from "./fixtures/create-order-fixture";
 import { initSTKPushError, initSTKPushSuccess } from "./json/stk-push-data";
+import { getPaymentMethodsPaybillOnly, saveManualPaymentInfo, saveManualPaymentSuccess } from "./json/manual-payment-data.ts";
 import {
   getPaymentStatusError,
   getPaymentStatusOnHold,
@@ -183,6 +184,20 @@ test.describe("Unit Tests for the Lipa na M-PESA payment flow", () => {
     await page.reload();
 
     await expect(page.locator(".modal-title")).toHaveText("Lipa na M-PESA");
+  });
+
+  test("the user is able to view the manual payment option when they are in the 'payment failed' view", async ({
+    page,
+    order,
+  }) => {
+    const newOrder = await order("failed");
+    await page.goto(
+      `${WP_SITE_URL}/lipa-na-mpesa-k2/?order_key=${newOrder.order_key}`
+    );
+
+    await page.reload();
+
+    await expect(page.locator(".switch-to-manual-payments")).toContainText("Having trouble");
   });
 
   test("the user is taken to the 'order received' page when they reload page if payment is successful", async ({
@@ -379,4 +394,177 @@ test.describe("Kopo Kopo for WooCommerce Payment Flow (Logged In User)", () => {
     await Promise.all([page.waitForURL("**/checkout/order-received/**")]);
     await expect(page).toHaveURL(/checkout\/order-received/);
   });
+});
+
+test.describe("Kopo Kopo for WooCommerce Manual Payments Flow", () => {
+  test.beforeAll(async () => {
+    // Launch once in headed mode with slowMo
+    browser = await chromium.launch({ headless: false, slowMo: 50 });
+    context = await browser.newContext();
+    page = await context.newPage();
+  });
+
+  test.afterAll(async () => {
+    await browser.close();
+  });
+
+  test("Full flow (Manual payment): Shop → Checkout → Manual Payment(Success) → Order Received", async () => {
+    test.setTimeout(45_000);
+
+    // Shop
+    await page.goto(`${WP_SITE_URL}/shop/`);
+    await page.click(".product a");
+    await page.click("button.single_add_to_cart_button");
+
+    // Cart → Checkout
+    await page.goto(`${WP_SITE_URL}/cart/`);
+    await page.locator("text=Proceed to Checkout").click();
+
+    // Billing
+    await page.fill("#billing_first_name", "Doreen");
+    await page.fill("#billing_last_name", "Chemweno");
+    await page.fill("#billing_email", "test@example.com");
+    await page.fill("#billing_phone", "0923456789");
+    await page.fill("#billing_address_1", "123 Street");
+    await page.fill("#billing_city", "Nairobi");
+    await page.fill("#billing_postcode", "00100");
+    await page.selectOption("#billing_country", "KE");
+    await page.selectOption("#billing_state", "Nairobi County");
+
+    // Payment method
+    await page.check("#payment_method_kkwoo");
+
+    // Place order
+    await Promise.all([
+      page.waitForURL("**/lipa-na-mpesa-k2/**"),
+      page.click("#place_order"),
+    ]);
+    await expect(page).toHaveURL(/lipa-na-mpesa-k2/);
+
+    // Payment
+    await page.fill("#mpesa-phone-input", "923456789");
+    page.click("#proceed-to-pay-btn");
+
+    await page.route("**/wp-json/kkwoo/v1/stk-push", async (route) => {
+      await route.fulfill({
+        status: 400,
+        contentType: "application/json",
+        body: JSON.stringify(initSTKPushError),
+      });
+    });
+
+    await expect(page.locator("#payment-error")).toBeVisible();
+    await expect(page.locator("#switch-to-manual-payments")).toBeVisible();
+    await page.click("#switch-to-manual-payments");
+
+    await page.route("**/wp-json/kkwoo/v1/selected-manual-payment-method", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(getPaymentMethodsPaybillOnly),
+      });
+    });
+
+    await expect(page.locator("#manual-payment-instructions")).toBeVisible();
+    await page.fill("#mpesa-ref-input", "DEE2026220346");
+    page.click("#submit-manual-payment-details")
+    
+    await page.route("**/wp-json/kkwoo/v1/save-manual-payment-details", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(saveManualPaymentSuccess),
+      });
+    });
+
+
+    await expect(page.locator(".side-note")).toHaveText(saveManualPaymentSuccess.message);
+    await expect(page.locator("#redirect-to-order-received")).toBeVisible();
+    await page.click("#redirect-to-order-received");
+
+    // Redirect → Order received
+    await Promise.all([page.waitForURL("**/checkout/order-received/**")]);
+    await expect(page).toHaveURL(/checkout\/order-received/);
+
+  })
+
+  test("Full flow (Manual payment): Shop → Checkout → Manual Payment(No payment yet) → Order Received", async () => {
+    test.setTimeout(45_000);
+
+    // Shop
+    await page.goto(`${WP_SITE_URL}/shop/`);
+    await page.click(".product a");
+    await page.click("button.single_add_to_cart_button");
+
+    // Cart → Checkout
+    await page.goto(`${WP_SITE_URL}/cart/`);
+    await page.locator("text=Proceed to Checkout").click();
+
+    // Billing
+    await page.fill("#billing_first_name", "Doreen");
+    await page.fill("#billing_last_name", "Chemweno");
+    await page.fill("#billing_email", "test@example.com");
+    await page.fill("#billing_phone", "0923456789");
+    await page.fill("#billing_address_1", "123 Street");
+    await page.fill("#billing_city", "Nairobi");
+    await page.fill("#billing_postcode", "00100");
+    await page.selectOption("#billing_country", "KE");
+    await page.selectOption("#billing_state", "Nairobi County");
+
+    // Payment method
+    await page.check("#payment_method_kkwoo");
+
+    // Place order
+    await Promise.all([
+      page.waitForURL("**/lipa-na-mpesa-k2/**"),
+      page.click("#place_order"),
+    ]);
+    await expect(page).toHaveURL(/lipa-na-mpesa-k2/);
+
+    // Payment
+    await page.fill("#mpesa-phone-input", "923456789");
+    page.click("#proceed-to-pay-btn");
+
+    await page.route("**/wp-json/kkwoo/v1/stk-push", async (route) => {
+      await route.fulfill({
+        status: 400,
+        contentType: "application/json",
+        body: JSON.stringify(initSTKPushError),
+      });
+    });
+
+    await expect(page.locator("#payment-error")).toBeVisible();
+    await expect(page.locator("#switch-to-manual-payments")).toBeVisible();
+    await page.click("#switch-to-manual-payments");
+
+    await page.route("**/wp-json/kkwoo/v1/selected-manual-payment-method", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(getPaymentMethodsPaybillOnly),
+      });
+    });
+
+    await expect(page.locator("#manual-payment-instructions")).toBeVisible();
+    await page.fill("#mpesa-ref-input", "DEE2026220346");
+    page.click("#submit-manual-payment-details")
+    
+    await page.route("**/wp-json/kkwoo/v1/save-manual-payment-details", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(saveManualPaymentInfo),
+      });
+    });
+
+    await expect(page.locator(".side-note")).toHaveText(saveManualPaymentInfo.message);
+    await expect(page.locator("#redirect-to-order")).toBeVisible();
+    await page.click("#redirect-to-order");
+
+    // Redirect → Order received
+    await Promise.all([page.waitForURL("**/checkout/order-received/**")]);
+    await expect(page).toHaveURL(/checkout\/order-received/);
+
+
+  })
 });

@@ -10,8 +10,8 @@ use KKWoo_Logger;
 use WP_REST_Request;
 use WP_REST_Response;
 use WP_Error;
-use WC_Order;
 use KKWoo\Database\Manual_Payments_Tracker_repository;
+use KKWoo\ManualPayments\Manual_Payment_Service;
 
 add_action('rest_api_init', function () {
     register_rest_route('kkwoo/v1', '/create-webhook-subscriptions', [
@@ -165,7 +165,6 @@ function handle_b2b_transaction_received(WP_REST_Request $request)
 function process_request(WP_REST_Request $request)
 {
     $validated_response = validate_webhook_request($request);
-    KKWoo_Logger::log($validated_response);
 
     $status    = $validated_response['status'] ?? '';
     $data      = $validated_response['data'] ?? [];
@@ -185,61 +184,22 @@ function process_request(WP_REST_Request $request)
     }
 
     if ('Received' === $data['status'] || 'Complete' === $data['status']) {
+        $encoded_webhook_payload = json_encode($validated_response);
+        Manual_Payments_Tracker_repository::upsert(
+            null,
+            $reference,
+            $encoded_webhook_payload,
+        );
+
         $payment_tracker = Manual_Payments_Tracker_repository::get_by_mpesa_ref($reference);
+        $order_id = $payment_tracker['order_id'] ?? null;
 
-        if ($payment_tracker && isset($payment_tracker['id'])) {
-            Manual_Payments_Tracker_repository::update_by_id(
-                $payment_tracker['id'],
-                ['webhook_payload' => json_encode($validated_response)]
-            );
-
-            $order = wc_get_order($payment_tracker['order_id']);
+        if (isset($order_id)) {
+            $order = wc_get_order($order_id);
             if ($order) {
-                process_success_response($order, $data);
-            } else {
-                KKWoo_Logger::log("Order not found for ID: {$payment_tracker['order_id']}", 'error');
-                return new \WP_REST_Response(['message' => 'Order not found'], 404);
+                $manual_payment_service = new Manual_Payment_Service();
+                $manual_payment_service->complete($order, $data);
             }
-        } else {
-            KKWoo_Logger::log("Payment tracker not found for reference: {$reference}", 'warning');
         }
-    }
-}
-
-/**
-* Function to process an order once the payment has been received with status 'Success'.
-*
-* @param WC_Order  $order
-* @param array $data
-*
-* @return void
-*/
-function process_success_response(WC_Order $order, array $data): void
-{
-    if (!$order->has_status('processing') && !$order->has_status('completed')) {
-        $amount_received = floatval($data['amount']);
-        $order_total = floatval($order->get_total());
-        $currency_symbol = get_woocommerce_currency_symbol($order->get_currency());
-
-        if ($amount_received >= $order_total) {
-            $order->payment_complete($data['id']);
-            $order->add_order_note(sprintf(
-                'Manual Lipa na M-PESA payment completed. Amount: %s %s. Phone: %s',
-                $currency_symbol,
-                $data['amount'],
-                $data['senderPhoneNumber'] ?? $data['sendingTill']
-            ));
-        } else {
-            $order->add_order_note(sprintf(
-                'Received payment of %s%.2f, which is less than the order total of %s%.2f.',
-                $currency_symbol,
-                $amount_received,
-                $currency_symbol,
-                $order_total
-            ));
-        }
-
-        $order->update_meta_data('kkwoo_payment_error_msg', '');
-        $order->save();
     }
 }
