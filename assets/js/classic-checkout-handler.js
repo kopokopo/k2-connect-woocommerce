@@ -5,8 +5,8 @@
 
     if (chosenMethod === 'kkwoo') {
         $btn
-            .text('Proceed to Lipa NA M-PESA')
-            .attr('data-value', 'Proceed to Lipa NA M-PESA')
+            .text('Proceed to Lipa na M-PESA')
+            .attr('data-value', 'Proceed to Lipa na M-PESA')
             .addClass('k2');
     } else {
         $btn

@@ -66,7 +66,7 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
             'title'       => 'Description',
             'type'        => 'text',
             'description' => 'Description shown to customers at checkout.',
-            'default'     => 'Pay using Lipa na M-PESA. Modal will appear after clicking “Lipa na M-PESA”.',
+            'default'     => 'Select "Proceed to Lipa na M-PESA" below to pay with M-PESA',
             'custom_attributes' => [
               'readonly' => 'readonly',
             ],
