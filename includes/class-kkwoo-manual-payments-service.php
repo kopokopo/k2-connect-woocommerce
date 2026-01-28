@@ -22,10 +22,9 @@ class Manual_Payment_Service
             if ($amount_received >= $order_total) {
                 $order->payment_complete($webhook_payload['id']);
                 $order->add_order_note(sprintf(
-                    'Manual Lipa na M-PESA payment completed. Amount: %s %s. Phone: %s',
+                    'Manual Lipa na M-PESA payment completed. Amount: %s %s.',
                     $currency_symbol,
-                    $webhook_payload['amount'],
-                    $webhook_payload['senderPhoneNumber'] ?? $webhook_payload['sendingTill']
+                    $webhook_payload['amount']
                 ));
             } else {
                 $order->add_order_note(sprintf(

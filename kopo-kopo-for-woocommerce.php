@@ -4,15 +4,15 @@
 * Plugin Name: Kopo Kopo for WooCommerce
 * Plugin URI:
 * Description: A Kopo Kopo plugin that integrates seamlessly with your WooCommerce shop, enabling your customers to make secure and convenient payments directly to your Kopo Kopo M-PESA till.
-* Version: 0.1.0
+* Version: 1.0.0
 * Requires at least: 6.8.1
 * Requires PHP: 7.4
 * Author: Doreen Chemweno
 * Author URI: https://kopokopo.co.ke
-* License:
-* License URI:
+* License: GPLv2 or later
+* License URI: https://www.gnu.org/licenses/gpl-2.0.html
 * Requires Plugins: woocommerce
-* WC tested up to: 8.0
+* WC tested up to: 10.4.3
 */
 
 if (!defined('ABSPATH')) {
@@ -56,29 +56,6 @@ if (!defined('KKWOO_PLUGIN_URL')) {
 if (!defined('KKWOO_COUNTRY_CODE')) {
     define('KKWOO_COUNTRY_CODE', '+254');
 }
-
-//TODO: MUST BE REMOVED - necessary for clearing caches in dev mode
-// Call it once
-add_action('init', 'kkwoo_clear_all_caches', 1);
-function kkwoo_clear_all_caches()
-{
-    // Clear WordPress caches
-    wp_cache_flush();
-
-    // Clear WooCommerce transients
-    wc_delete_product_transients();
-
-    // Clear any plugin-specific transients
-    delete_transient('kkwoo_cache');
-
-    // Opcache
-    if (function_exists('opcache_reset')) {
-        opcache_reset();
-    }
-
-    error_log('KKWOO: All caches cleared');
-}
-//TODO: END OF MUST BE REMOVED
 
 register_activation_hook(__FILE__, function () {
     KKWoo_Activation_Service::activate();
@@ -132,7 +109,6 @@ function k2_wc_settings_link($links)
 // Add checkout block support - declare that the plugin is compatible with WooCommerce blocks
 add_action('before_woocommerce_init', function () {
     if (class_exists(\Automattic\WooCommerce\Utilities\FeaturesUtil::class)) {
-        // TODO: confirm compatibility before deployment
         \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility(
             'custom_order_tables',
             __FILE__,
@@ -318,7 +294,7 @@ function enqueue_virtual_page_assets_late()
                 'plugin_url' => plugins_url('', __FILE__),
                 'phone_icon' => plugins_url('images/svg/phone.svg', __FILE__),
                 'spinner_icon' => plugins_url('images/svg/spinner.svg', __FILE__),
-                'k2_logo_with_name_img' => plugins_url('images/k2-logo-with-name.png', __FILE__),
+                'k2_logo_with_name_img' => plugins_url('images/svg/k2-logo-with-name.svg', __FILE__),
                 'kenyan_flag_img'    => plugins_url('images/kenyan-flag.png', __FILE__),
                 'error_circle_icon'    => plugins_url('images/svg/alert-circle.svg', __FILE__),
                 'success_circle_icon'    => plugins_url('images/svg/success-circle.svg', __FILE__),

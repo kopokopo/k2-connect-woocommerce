@@ -14,7 +14,7 @@ class Manual_Payments_Tracker_repository
 
         $sql = "CREATE TABLE $table_name (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    order_id BIGINT UNSIGNED UNIQUE,
+    order_id BIGINT UNSIGNED,
     mpesa_ref_no VARCHAR(50) NOT NULL UNIQUE,
     webhook_payload LONGTEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -36,7 +36,7 @@ class Manual_Payments_Tracker_repository
         $success = $wpdb->query(
             $wpdb->prepare(
                 "INSERT INTO $table (mpesa_ref_no, order_id, webhook_payload)
-                VALUES (%d, %s, %s)
+                VALUES (%s, %d, %s)
                 ON DUPLICATE KEY UPDATE
                 order_id = CASE
                     WHEN VALUES(order_id) IS NOT NULL AND VALUES(order_id) != 0 THEN VALUES(order_id)

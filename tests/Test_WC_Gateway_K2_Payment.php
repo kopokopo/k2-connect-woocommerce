@@ -173,7 +173,7 @@ class Test_WC_Gateway_K2_Payment extends WP_UnitTestCase
         $settings = $this->gateway->form_fields;
         $descriptionField = $settings['description'];
 
-        $this->assertEquals('Select "Proceed to Lipa na M-PESA" below to pay with M-PESA', $descriptionField['default']);
+        $this->assertEquals('Click "Proceed to Lipa na M-PESA" below to pay with M-PESA', $descriptionField['default']);
     }
 
     public function test_description_form_field_is_readonly(): void
