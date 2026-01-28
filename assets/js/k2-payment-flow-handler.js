@@ -14,6 +14,7 @@ window.addEventListener("beforeunload", function (e) {
 
 (function ($, templates, validations) {
     function renderSection(renderFn, withManualPaymentSection = false) {
+      const overlay = $(".k2.modal-overlay");
       const modalContent = $(".k2 .modal-content");
       modalContent.empty();
 
@@ -22,13 +23,15 @@ window.addEventListener("beforeunload", function (e) {
 
       modalContent.append($newSection);
       if(withManualPaymentSection && KKWooData.selected_manual_payment_method){
-        const selectedMethod = KKWooData.selected_manual_payment_method==='till'?'M-PESA Buy Goods ':'M-PESA Pay Bill'
+        const selectedMethod = KKWooData.selected_manual_payment_method==='till'?'M-PESA Buy Goods ':'M-PESA Paybill'
         $(".switch-to-manual-payments").show()
         $("#switch-to-manual-payments").text(selectedMethod);
 
       }else{
         $(".switch-to-manual-payments").hide();
       }
+
+      overlay.show();
     }
 
     function populateCheckoutInfo() {
@@ -53,7 +56,7 @@ window.addEventListener("beforeunload", function (e) {
           $("#currency").text(KKWooData.currency);
           break;
         case 'paybill':
-          $("#payment-method").text('Pay Bill');
+          $("#payment-method").text('Paybill');
           $("#payment_method_title").text('Business');
           $("#till-or-paybill-number").text(data?.paybill?.business_no);
           $(".for-paybill").show();
@@ -161,7 +164,12 @@ window.addEventListener("beforeunload", function (e) {
         },
         success: function (data) {
           autoRefreshPage = true;
-          renderSection(() => templates.PaymentNoResultYet(data.message??''));
+          if(data.status === 'success'){
+            renderSection(() => templates.PaymentSuccess(data.message??''));
+            addRedirectToOrderReceived();
+          } else {
+            renderSection(() => templates.PaymentNoResultYet(data.message??''));
+          }
         },
         error: function (jqXHR) {
           let errorMessage;

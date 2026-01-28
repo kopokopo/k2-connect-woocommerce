@@ -16,7 +16,7 @@ class KKWoo_User_Friendly_Messages
     'on_hold_status_update' => 'Your payment has been initiated. The order will be updated once the payment is processed.',
     'failed_status_update' => 'We couldn’t complete your payment. Please try again.',
     'invalid_stk_push_callback_data' => 'The callback data received has an invalid format from the expected format.',
-    'location_url_missing' => 'An order appears to be successful, however the location url is missing. Please check the order manually and ensure it reflects the correct status.',
+    'location_url_missing' => 'An order appears to be successful, however the location URL is missing. Please check the order manually and ensure it reflects the correct status.',
     'payment_processed' => 'Your payment has been processed.',
     'payment_still_on_hold' => 'We’re waiting to receive your payment. Once it’s confirmed, your order will be updated.',
     'mpesa_ref_missing' => 'M-PESA reference number is required.',

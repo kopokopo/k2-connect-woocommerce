@@ -66,7 +66,7 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
             'title'       => 'Description',
             'type'        => 'text',
             'description' => 'Description shown to customers at checkout.',
-            'default'     => 'Select "Proceed to Lipa na M-PESA" below to pay with M-PESA',
+            'default'     => 'Click "Proceed to Lipa na M-PESA" below to pay with M-PESA',
             'custom_attributes' => [
               'readonly' => 'readonly',
             ],
@@ -75,7 +75,7 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
           'till_number' => [
             'title'       => 'Till Number',
             'type'        => 'text',
-            'description' => 'The till number to receive payments via STK Push',
+            'description' => 'The till number to receive payments via STK Push.',
             'default'     => '',
           ],
           'client_id' => [
@@ -109,19 +109,19 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
           'manual_payment_option_notice' => [
               'title'       => 'Manual Payments Settings',
               'type'        => 'title',
-              'description' => '⚠️ Please provide either Till OR Paybill details. If both are provided, the Till option will be used.',
+              'description' => '⚠️ Provide a Lipa na M-PESA till number or Paybill details. If you provide both, the till option will take priority.',
           ],
           'enable_manual_payments' => [
             'title'       => 'Enable/Disable Manual Payments',
-            'label'       => 'Enable Manual Payments to specified Till or Paybill numbers.',
-            'description' => 'Manual payments acts as a fallback option to STK Push. Whenever a customer is unable to complete a payment with STK Push, this option will be presented to them if enabled.',
+            'label'       => 'Enable manual payments',
+            'description' => 'Provide a Lipa na M-PESA till number or Paybill details as a fallback to STK Push.',
             'type'        => 'checkbox',
             'default'     => 'no'
            ],
           'manual_payment_method' => [
               'title'       => 'Manual Payment Method',
               'type'        => 'select',
-              'description' => 'Choose either Till OR Paybill.',
+              'description' => 'Choose either Till or Paybill.',
               'default'     => 'till',
               'options'     => [
                   'till'    => 'Till',
@@ -129,20 +129,20 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
               ],
           ],
           'manual_payments_till_no' => [
-            'title'    => 'Till number (optional)',
+            'title'    => 'Till Number (optional)',
             'type'     => 'text',
-            'description' => 'The till number to receive payments via manual payment to Till.',
+            'description' => 'Enter the Lipa na M-PESA till number to receive payments if STK Push fails.',
             'default'  => '',
           ],
           'paybill_business_no' => [
             'title'    => 'Paybill Business Number (optional)',
-            'description' => 'The paybill number to receive payments via manual payment to Paybill.',
+            'description' => 'Enter the Paybill number to receive payments if STK Push fails.',
             'default'  => '',
             'type'     => 'text',
           ],
           'paybill_account_no' => [
             'title'    => 'Paybill Account Number (optional)',
-            'description' => 'The paybill account number to receive payments via manual payment to Paybill.',
+            'description' => 'Provide the Paybill account number.',
             'default'  => '',
             'type'     => 'text',
           ],
