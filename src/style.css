@@ -118,6 +118,8 @@ button.k2 {
 }
 
 .k2 button.link {
+  background: transparent;
+  padding: 0;
   color: var(--Secondary-Dark-Blue-dark-blue-500);
   font-size: 16px;
   font-weight: 500;
@@ -126,6 +128,10 @@ button.k2 {
   text-underline-offset: 2px;
   border: none;
   cursor: pointer;
+}
+
+.k2 button.link:hover {
+  background: transparent;
 }
 
 button.k2:disabled {
@@ -438,6 +444,7 @@ img.k2 {
 }
 
 .k2 .switch-to-manual-payments {
+  padding-top: 22px;
   color: var(--Primary-Navy-Blue-navy-blue-500);
   font-size: 16px;
   line-height: 24px;

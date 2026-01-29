@@ -77,6 +77,14 @@ class KKWoo_Query_Incoming_Payment_Status_Service
                     'message' => KKWoo_User_Friendly_Messages::get('payment_still_on_hold'),
                 ], 200);
 
+            case 'Received':
+                self::process_pending_response($order);
+
+                return new WP_REST_Response([
+                    'status'  => 'success',
+                    'message' => KKWoo_User_Friendly_Messages::get('payment_still_on_hold'),
+                ], 200);
+
             case 'Failed':
                 self::process_failed_response($order, $data['errors']);
 
@@ -132,6 +140,12 @@ class KKWoo_Query_Incoming_Payment_Status_Service
                 break;
 
             case 'Pending':
+                self::process_pending_response($order);
+
+                $message = KKWoo_User_Friendly_Messages::get('payment_still_on_hold');
+                break;
+
+            case 'Received':
                 self::process_pending_response($order);
 
                 $message = KKWoo_User_Friendly_Messages::get('payment_still_on_hold');

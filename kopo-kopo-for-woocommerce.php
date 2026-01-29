@@ -198,7 +198,7 @@ add_action('wp_enqueue_scripts', function () {
                 'kkwoo-classic-style',
                 plugins_url('assets/style.css', __FILE__),
                 [],
-                '1.0.0'
+                $asset_version
             );
         }
     }
@@ -233,7 +233,7 @@ add_action('wp_enqueue_scripts', function () {
                     'kkwoo-classic-style',
                     plugins_url('assets/style.css', __FILE__),
                     [],
-                    '1.0.0'
+                    $asset_version
                 );
             }
         }
@@ -246,79 +246,131 @@ add_action('wp_enqueue_scripts', function () {
  * Must inject directly to wp_head/wp_footer since wp_enqueue_scripts hook has already fired
  */
 
-add_action('template_redirect', 'enqueue_virtual_page_assets_late');
-function enqueue_virtual_page_assets_late()
-{
-    if (get_query_var('lipa_na_mpesa_k2')) {
-
-        $order_key = sanitize_text_field(get_query_var('order_key'));
-        $order_id  = wc_get_order_id_by_order_key($order_key);
-        $order     = wc_get_order($order_id);
-
-        $gateways = WC()->payment_gateways()->payment_gateways();
-        $kkwoo = $gateways['kkwoo'];
-        $enable_manual_payments      = $kkwoo->get_option('enable_manual_payments');
-        $manual_payments_till_no     = $kkwoo->get_option('manual_payments_till_no');
-        $paybill_business_no         = $kkwoo->get_option('paybill_business_no');
-        $paybill_account_no          = $kkwoo->get_option('paybill_account_no');
-
-        if ('yes' === $enable_manual_payments && !empty($manual_payments_till_no)) {
-            $selected_manual_payment_method = 'till';
-        } elseif (
-            'yes' === $enable_manual_payments &&
-            empty($manual_payments_till_no) &&
-            !empty($paybill_business_no) &&
-            !empty($paybill_account_no)
-        ) {
-            $selected_manual_payment_method = 'paybill';
-        } else {
-            $selected_manual_payment_method = '';
-        }
-
-        if (!$order) {
-            return;
-        }
-
-        add_action('wp_footer', function () use ($order, $order_key, $selected_manual_payment_method) {
-            $localized_data = [
-                'ajax_url' => admin_url('admin-ajax.php'),
-                'nonce'    => wp_create_nonce('wp_rest'),
-                'order_key' => $order_key,
-                'order_status' => $order->get_status(),
-                'total_amount' => $order->get_total(),
-                'currency' => get_woocommerce_currency_symbol($order->get_currency()),
-                'store_name' => get_bloginfo('name'),
-                'selected_manual_payment_method' => $selected_manual_payment_method,
-                'order_received_url' => $order->get_checkout_order_received_url(),
-                'this_order_url' => $order->get_user_id() ? $order->get_view_order_url() : $order->get_checkout_order_received_url(),
-                'plugin_url' => plugins_url('', __FILE__),
-                'phone_icon' => plugins_url('images/svg/phone.svg', __FILE__),
-                'spinner_icon' => plugins_url('images/svg/spinner.svg', __FILE__),
-                'k2_logo_with_name_img' => plugins_url('images/svg/k2-logo-with-name.svg', __FILE__),
-                'kenyan_flag_img'    => plugins_url('images/kenyan-flag.png', __FILE__),
-                'error_circle_icon'    => plugins_url('images/svg/alert-circle.svg', __FILE__),
-                'success_circle_icon'    => plugins_url('images/svg/success-circle.svg', __FILE__),
-                'info_circle_icon'    => plugins_url('images/svg/info-circle.svg', __FILE__),
-            ];
-
-            $is_dev = defined('WP_DEBUG') && WP_DEBUG; // true for local dev
-            $asset_version = $is_dev ? time() : KKWOO_PLUGIN_VERSION;
-
-            echo '<script type="text/javascript">' . "\n";
-            echo 'var KKWooData = ' . json_encode($localized_data) . ';' . "\n";
-            echo '</script>' . "\n";
-            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/ui-templates-init.js?v=' . $asset_version . '"></script>' . "\n";
-            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/mpesa-number-form.js?v=' . $asset_version . '"></script>' . "\n";
-            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/pin-instruction.js?v=' . $asset_version . '"></script>' . "\n";
-            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/polling.js?v=' . $asset_version . '"></script>' . "\n";
-            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/payment-success.js?v=' . $asset_version . '"></script>' . "\n";
-            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/payment-error.js?v=' . $asset_version . '"></script>' . "\n";
-            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/payment-no-result-yet.js?v=' . $asset_version . '"></script>' . "\n";
-            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/payment-refunded.js?v=' . $asset_version . '"></script>' . "\n";
-            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/ui-templates/manual-payment-instructions.js?v=' . $asset_version . '"></script>' . "\n";
-            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/polling-manager.js?v=' . $asset_version . '"></script>' . "\n";
-            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/k2-validations.js?v=' . $asset_version . '"></script>' . "\n";
-            echo '<script src="' . plugin_dir_url(__FILE__) . 'assets/js/k2-payment-flow-handler.js?v=' . $asset_version . '"></script>' . "\n";
-        }, 10);
+add_action('template_redirect', function () {
+    if (!get_query_var('lipa_na_mpesa_k2')) {
+        return;
     }
-}
+
+    $order_key = sanitize_text_field(get_query_var('order_key'));
+    $order_id  = wc_get_order_id_by_order_key($order_key);
+    $order     = wc_get_order($order_id);
+
+    $gateways = WC()->payment_gateways()->payment_gateways();
+    $kkwoo = $gateways['kkwoo'];
+    $enable_manual_payments      = $kkwoo->get_option('enable_manual_payments');
+    $manual_payments_till_no     = $kkwoo->get_option('manual_payments_till_no');
+    $paybill_business_no         = $kkwoo->get_option('paybill_business_no');
+    $paybill_account_no          = $kkwoo->get_option('paybill_account_no');
+
+    if ('yes' === $enable_manual_payments && !empty($manual_payments_till_no)) {
+        $selected_manual_payment_method = 'till';
+    } elseif (
+        'yes' === $enable_manual_payments &&
+        empty($manual_payments_till_no) &&
+        !empty($paybill_business_no) &&
+        !empty($paybill_account_no)
+    ) {
+        $selected_manual_payment_method = 'paybill';
+    } else {
+        $selected_manual_payment_method = '';
+    }
+
+    if (!$order) {
+        status_header(404);
+        exit('Order not found');
+    }
+
+    remove_all_actions('wp_head');
+    remove_all_actions('wp_footer');
+
+    status_header(200);
+    header('Content-Type: text/html; charset=utf-8');
+
+
+    $localized_data = [
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce'    => wp_create_nonce('wp_rest'),
+        'order_key' => $order_key,
+        'order_status' => $order->get_status(),
+        'total_amount' => $order->get_total(),
+        'currency' => get_woocommerce_currency_symbol($order->get_currency()),
+        'store_name' => get_bloginfo('name'),
+        'selected_manual_payment_method' => $selected_manual_payment_method,
+        'order_received_url' => $order->get_checkout_order_received_url(),
+        'this_order_url' => $order->get_user_id() ? $order->get_view_order_url() : $order->get_checkout_order_received_url(),
+        'plugin_url' => plugins_url('', __FILE__),
+        'phone_icon' => plugins_url('images/svg/phone.svg', __FILE__),
+        'spinner_icon' => plugins_url('images/svg/spinner.svg', __FILE__),
+        'k2_logo_with_name_img' => plugins_url('images/svg/k2-logo-with-name.svg', __FILE__),
+        'kenyan_flag_img'    => plugins_url('images/kenyan-flag.png', __FILE__),
+        'error_circle_icon'    => plugins_url('images/svg/alert-circle.svg', __FILE__),
+        'success_circle_icon'    => plugins_url('images/svg/success-circle.svg', __FILE__),
+        'info_circle_icon'    => plugins_url('images/svg/info-circle.svg', __FILE__),
+    ];
+
+    $is_dev = defined('WP_DEBUG') && WP_DEBUG; // true for local dev
+    $asset_version = $is_dev ? time() : KKWOO_PLUGIN_VERSION;
+
+    wp_enqueue_script('jquery');
+
+    wp_enqueue_style(
+        'kkwoo-classic-style',
+        plugins_url('src/style.css', __FILE__),
+        [],
+        $asset_version
+    );
+
+    ?>
+    <!DOCTYPE html>
+    <html lang="en">
+        <head>
+            <meta charset="utf-8">
+            <title>Lipa na M-PESA</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <?php
+                wp_print_styles('kkwoo-classic-style');
+    ?>
+        </head>
+        <body>
+
+        <main class="wp-block-group">
+            <div class="k2 modal-overlay" style="display: none">
+                <div class="modal-body">
+                    <div class="modal-content"></div>
+                    <div class="modal-footer">
+                        Powered by
+                        <img src="<?= esc_url(plugins_url('images/svg/k2-logo-with-name.svg', __FILE__)) ?>">
+                    </div>
+                </div>
+                <p class='switch-to-manual-payments'>Having trouble? Pay via 
+                    <button id='switch-to-manual-payments' class="link">M-PESA Buy Goods</button>
+                </p>
+            </div>
+        </main>
+
+        <?php
+        wp_print_scripts('jquery');
+    ?>
+
+        <script type="text/javascript">
+        window.KKWooData = <?= wp_json_encode($localized_data); ?>;
+        </script>
+
+        <script src="<?= esc_url(plugins_url('assets/js/ui-templates/ui-templates-init.js', __FILE__)); ?>?v=<?= $asset_version ?>"></script>
+        <script src="<?= esc_url(plugins_url('assets/js/ui-templates/mpesa-number-form.js', __FILE__)); ?>?v=<?= $asset_version ?>"></script>
+        <script src="<?= esc_url(plugins_url('assets/js/ui-templates/pin-instruction.js', __FILE__)); ?>?v=<?= $asset_version ?>"></script>
+        <script src="<?= esc_url(plugins_url('assets/js/ui-templates/polling.js', __FILE__)); ?>?v=<?= $asset_version ?>"></script>
+        <script src="<?= esc_url(plugins_url('assets/js/ui-templates/payment-success.js', __FILE__)); ?>?v=<?= $asset_version ?>"></script>
+        <script src="<?= esc_url(plugins_url('assets/js/ui-templates/payment-error.js', __FILE__)); ?>?v=<?= $asset_version ?>"></script>
+        <script src="<?= esc_url(plugins_url('assets/js/ui-templates/payment-no-result-yet.js', __FILE__)); ?>?v=<?= $asset_version ?>"></script>
+        <script src="<?= esc_url(plugins_url('assets/js/ui-templates/payment-refunded.js', __FILE__)); ?>?v=<?= $asset_version ?>"></script>
+        <script src="<?= esc_url(plugins_url('assets/js/ui-templates/manual-payment-instructions.js', __FILE__)); ?>?v=<?= $asset_version ?>"></script>
+
+        <script src="<?= esc_url(plugins_url('assets/js/polling-manager.js', __FILE__)); ?>?v=<?= $asset_version ?>"></script>
+        <script src="<?= esc_url(plugins_url('assets/js/k2-validations.js', __FILE__)); ?>?v=<?= $asset_version ?>"></script>
+        <script src="<?= esc_url(plugins_url('assets/js/k2-payment-flow-handler.js', __FILE__)); ?>?v=<?= $asset_version ?>"></script>
+   </body>
+    </html>
+    <?php
+    exit;
+});
