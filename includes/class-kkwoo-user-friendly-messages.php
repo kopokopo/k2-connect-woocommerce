@@ -34,6 +34,6 @@ class KKWoo_User_Friendly_Messages
     */
     public static function get($key): string
     {
-        return isset(self::$user_friendly_messages[ $key ]) ? __(self::$user_friendly_messages[ $key ], 'kkwoo') : '';
+        return self::$user_friendly_messages[ $key ] ?? '';
     }
 }

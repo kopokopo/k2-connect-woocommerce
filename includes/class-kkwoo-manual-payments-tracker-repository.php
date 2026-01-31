@@ -9,7 +9,7 @@ class Manual_Payments_Tracker_repository
     {
         global $wpdb;
 
-        $table_name = $wpdb->prefix . self::$base_table_name;
+        $table_name = self::table_name();
         $charset_collate = $wpdb->get_charset_collate();
 
         $sql = "CREATE TABLE $table_name (
@@ -29,13 +29,15 @@ class Manual_Payments_Tracker_repository
     {
         global $wpdb;
 
-        $table = $wpdb->prefix . self::$base_table_name;
+        $table = self::table_name();
 
         $wpdb->hide_errors();  // Prevent showing HTML error blocks
 
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $success = $wpdb->query(
             $wpdb->prepare(
-                "INSERT INTO $table (mpesa_ref_no, order_id, webhook_payload)
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+                "INSERT INTO {$table} (mpesa_ref_no, order_id, webhook_payload)
                 VALUES (%s, %d, %s)
                 ON DUPLICATE KEY UPDATE
                 order_id = CASE
@@ -53,7 +55,20 @@ class Manual_Payments_Tracker_repository
         );
 
         if ($success === false) {
-            error_log("DB upsert failed: " . $wpdb->last_error);
+            KKWoo_Logger::log(
+                sprintf(
+                    'DB upsert failed for table %s, mpesa_ref_no %s: %s',
+                    $table,
+                    $mpesa_ref_no,
+                    $wpdb->last_error
+                ),
+                'error'
+            );
+        } else {
+            wp_cache_delete(
+                'kkwoo_mpesa_ref_' . md5($mpesa_ref_no),
+                'kkwoo'
+            );
         }
 
         return $wpdb->rows_affected !== false;
@@ -64,11 +79,36 @@ class Manual_Payments_Tracker_repository
         global $wpdb;
 
         $mpesa_ref_no = sanitize_text_field($mpesa_ref_no);
-        $table = $wpdb->prefix . self::$base_table_name;
 
-        return $wpdb->get_row(
-            $wpdb->prepare("SELECT * FROM $table WHERE mpesa_ref_no = %s LIMIT 1", $mpesa_ref_no),
+        $cache_key   = 'kkwoo_mpesa_ref_' . md5($mpesa_ref_no);
+        $cache_group = 'kkwoo';
+
+        $cached = wp_cache_get($cache_key, $cache_group);
+        if (false !== $cached) {
+            return $cached;
+        }
+
+        $table = self::table_name();
+
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,
+        $result = $wpdb->get_row(
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            $wpdb->prepare("SELECT * FROM {$table} WHERE mpesa_ref_no = %s LIMIT 1", $mpesa_ref_no),
             ARRAY_A
         );
+
+        if (!is_array($result)) {
+            return null;
+        }
+
+        wp_cache_set($cache_key, $result, $cache_group, 5 * MINUTE_IN_SECONDS);
+
+        return $result;
+    }
+
+    private static function table_name(): string
+    {
+        global $wpdb;
+        return $wpdb->prefix . self::$base_table_name;
     }
 }
