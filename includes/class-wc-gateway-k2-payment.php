@@ -236,7 +236,14 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
         if (!$this->wp_is_admin()) {
             $icon_url = KKWOO_PLUGIN_URL . 'images/mpesa-logo.png';
             $icon_html = '<img src="' . esc_url($icon_url) . '" alt="' . esc_attr($this->title) . '" style="height:45px;"/>';
-            return apply_filters('woocommerce_gateway_icon', $icon_html, $this->id);
+
+            // phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
+            return apply_filters(
+                'woocommerce_gateway_icon',
+                $icon_html,
+                $this->id
+            );
+            // phpcs:enable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
         }
 
         return parent::get_icon();
@@ -258,7 +265,8 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
 
     public function render_custom_payment_gateway_settings_buttons(): void
     {
-        $section = $_GET['section'] ?? '';
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        $section = sanitize_text_field(wp_unslash($_GET['section'] ?? ''));
         if ($section !== $this->id) {
             return;
         }

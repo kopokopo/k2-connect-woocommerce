@@ -30,7 +30,7 @@ class WC_Gateway_K2_Blocks extends AbstractPaymentMethodType
         $asset_path = KKWOO_PLUGIN_PATH . 'build/index.asset.php';
 
         if (!file_exists($asset_path)) {
-            error_log('KKWOO: Asset file not found');
+            KKWoo_Logger::log('KKWOO: Asset file not found', 'error');
             return [];
         }
 

@@ -15,10 +15,10 @@ if (! defined('WP_UNINSTALL_PLUGIN')) {
     exit;
 }
 
-$gateway_id = 'kkwoo';
+const KKWOO_GATEWAY_ID = 'kkwoo';
 
 // WooCommerce stores gateway settings under this option name
-$option_name = 'woocommerce_' . $gateway_id . '_settings';
+const KKWOO_OPTION_NAME = 'woocommerce_' . KKWOO_GATEWAY_ID . '_settings';
 
 // Delete gateway settings
-delete_option($option_name);
+delete_option(KKWOO_OPTION_NAME);

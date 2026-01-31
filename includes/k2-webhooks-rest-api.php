@@ -144,7 +144,9 @@ function validate_webhook_request(WP_REST_Request $request): array
 
     $webhook_payload = $request->get_body();
 
-    $response = $webhooks->webhookHandler($webhook_payload, $_SERVER['HTTP_X_KOPOKOPO_SIGNATURE']);
+    $signature = sanitize_text_field(wp_unslash($_SERVER['HTTP_X_KOPOKOPO_SIGNATURE'] ?? ''));
+
+    $response = $webhooks->webhookHandler($webhook_payload, $signature);
     return $response;
 }
 

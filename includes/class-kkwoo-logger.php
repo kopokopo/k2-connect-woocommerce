@@ -18,10 +18,9 @@ class KKWoo_Logger
 
             // Always log errors, but log "info/debug" only when WP_DEBUG is true
             if ($level === 'error' || (defined('WP_DEBUG') && WP_DEBUG)) {
-                $logger->log($level, print_r($message, true), $context);
+                $msg = is_scalar($message) ? $message : wp_json_encode($message);
+                $logger->log($level, $msg, $context);
             }
-        } else {
-            error_log('[KKWoo] ' . $level . ': ' . print_r($message, true));
         }
     }
 }

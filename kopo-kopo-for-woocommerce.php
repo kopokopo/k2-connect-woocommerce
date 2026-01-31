@@ -33,8 +33,14 @@ require_once __DIR__ . '/includes/class-kkwoo-manual-payments-tracker-repository
 require_once __DIR__ . '/includes/class-kkwoo-manual-payments-service.php';
 
 if (!defined('KKWOO_PLUGIN_VERSION')) {
-    $plugin_data = get_file_data(__FILE__, ['Version' => 'Version']);
-    define('KKWOO_PLUGIN_VERSION', $plugin_data['Version']);
+    $kkwoo_plugin_data = get_file_data(__FILE__, ['Version' => 'Version']);
+    define('KKWOO_PLUGIN_VERSION', $kkwoo_plugin_data['Version']);
+}
+
+if (!defined('KKWOO_ASSET_VERSION')) {
+    $kkwoo_is_dev = defined('WP_DEBUG') && WP_DEBUG; // true for local dev
+    $kkwoo_asset_version = $kkwoo_is_dev ? time() : KKWOO_PLUGIN_VERSION;
+    define('KKWOO_ASSET_VERSION', $kkwoo_asset_version);
 }
 
 if (!defined('KKWOO_SANDBOX_URL')) {
@@ -66,8 +72,8 @@ register_deactivation_hook(__FILE__, function () {
 });
 
 // Register the gateway on plugins_loaded
-add_action('plugins_loaded', 'woocommerce_gateway_k2_payment_init', 0);
-function woocommerce_gateway_k2_payment_init()
+add_action('plugins_loaded', 'kkwoo_woocommerce_gateway_k2_payment_init', 0);
+function kkwoo_woocommerce_gateway_k2_payment_init()
 {
     if (! class_exists('WooCommerce')) {
         add_action('admin_notices', function () {
@@ -98,8 +104,8 @@ add_action('woocommerce_checkout_init', ['K2_Authorization', 'maybe_authorize'])
 add_action('woocommerce_view_order', ['K2_Authorization', 'maybe_authorize'], 10, 1);
 
 
-add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'k2_wc_settings_link');
-function k2_wc_settings_link($links)
+add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'kkwoo_wc_settings_link');
+function kkwoo_wc_settings_link($links)
 {
     $settings_link = '<a href="' . admin_url('admin.php?page=wc-settings&tab=checkout&section=kkwoo') . '">Settings</a>';
     array_unshift($links, $settings_link);
@@ -123,9 +129,9 @@ add_action('before_woocommerce_init', function () {
     }
 });
 
-add_filter('woocommerce_currency_symbol', 'k2_custom_currency_symbol', 10, 2);
+add_filter('woocommerce_currency_symbol', 'kkwoo_custom_currency_symbol', 10, 2);
 
-function k2_custom_currency_symbol($currency_symbol, $currency)
+function kkwoo_custom_currency_symbol($currency_symbol, $currency)
 {
     if ($currency === 'KES') {
         $currency_symbol = 'KSh'; // Use KSh instead of default
@@ -141,24 +147,24 @@ add_action('woocommerce_init', function () {
     }
 });
 
-add_action('woocommerce_blocks_loaded', 'k2_register_block_payment_method');
-function k2_register_block_payment_method()
+add_action('woocommerce_blocks_loaded', 'kkwoo_register_block_payment_method');
+function kkwoo_register_block_payment_method()
 {
     if (!class_exists('Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType')) {
-        error_log('KKWOO: AbstractPaymentMethodType not available');
+        KKWoo_Logger::log('AbstractPaymentMethodType not available', 'error');
         return;
     }
 
     $blocks_file = __DIR__ . '/includes/class-wc-gateway-k2-blocks.php';
     if (!file_exists($blocks_file)) {
-        error_log("KKWOO: Blocks file not found at $blocks_file");
+        KKWoo_Logger::log("Blocks file not found at $blocks_file", 'error');
         return;
     }
 
     require_once $blocks_file;
 
     if (!class_exists('WC_Gateway_K2_Blocks')) {
-        error_log('KKWOO: WC_Gateway_K2_Blocks class not found after including the file');
+        KKWoo_Logger::log('WC_Gateway_K2_Blocks class not found after including the file', 'error');
         return;
     }
 
@@ -181,7 +187,7 @@ add_action('wp_enqueue_scripts', function () {
             'kkwoo-checkout-handler',
             plugin_dir_url(__FILE__) . 'assets/js/classic-checkout-handler.js',
             ['jquery'],
-            '1.0',
+            KKWOO_ASSET_VERSION,
             true
         );
 
@@ -189,7 +195,7 @@ add_action('wp_enqueue_scripts', function () {
             'kkwoo-google-font',
             'https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap',
             [],
-            null
+            '1.0'
         );
 
 
@@ -198,7 +204,7 @@ add_action('wp_enqueue_scripts', function () {
                 'kkwoo-classic-style',
                 plugins_url('assets/style.css', __FILE__),
                 [],
-                $asset_version
+                KKWOO_ASSET_VERSION
             );
         }
     }
@@ -233,7 +239,7 @@ add_action('wp_enqueue_scripts', function () {
                     'kkwoo-classic-style',
                     plugins_url('assets/style.css', __FILE__),
                     [],
-                    $asset_version
+                    KKWOO_ASSET_VERSION
                 );
             }
         }
@@ -283,10 +289,6 @@ add_action('template_redirect', function () {
     remove_all_actions('wp_head');
     remove_all_actions('wp_footer');
 
-    status_header(200);
-    header('Content-Type: text/html; charset=utf-8');
-
-
     $localized_data = [
         'ajax_url' => admin_url('admin-ajax.php'),
         'nonce'    => wp_create_nonce('wp_rest'),
@@ -308,17 +310,54 @@ add_action('template_redirect', function () {
         'info_circle_icon'    => plugins_url('images/svg/info-circle.svg', __FILE__),
     ];
 
-    $is_dev = defined('WP_DEBUG') && WP_DEBUG; // true for local dev
-    $asset_version = $is_dev ? time() : KKWOO_PLUGIN_VERSION;
+
+    $base_url = plugin_dir_url(__FILE__) . 'assets/js/';
+
+    $scripts = [
+        'kkwoo-ui-templates-init'              => 'ui-templates/ui-templates-init.js',
+        'kkwoo-mpesa-number-form'              => 'ui-templates/mpesa-number-form.js',
+        'kkwoo-pin-instruction'                => 'ui-templates/pin-instruction.js',
+        'kkwoo-polling'                        => 'ui-templates/polling.js',
+        'kkwoo-payment-success'                => 'ui-templates/payment-success.js',
+        'kkwoo-payment-error'                  => 'ui-templates/payment-error.js',
+        'kkwoo-payment-no-result-yet'          => 'ui-templates/payment-no-result-yet.js',
+        'kkwoo-payment-refunded'               => 'ui-templates/payment-refunded.js',
+        'kkwoo-manual-payment-instructions'    => 'ui-templates/manual-payment-instructions.js',
+        'kkwoo-polling-manager'                => 'polling-manager.js',
+        'kkwoo-k2-validations'                 => 'k2-validations.js',
+        'kkwoo-payment-flow-handler'           => 'k2-payment-flow-handler.js',
+    ];
 
     wp_enqueue_script('jquery');
+    foreach ($scripts as $handle => $file) {
+        wp_enqueue_script(
+            $handle,
+            $base_url . $file,
+            ['jquery'],
+            KKWOO_ASSET_VERSION,
+            true
+        );
+    }
+
+    wp_enqueue_style(
+        'kkwoo-google-font',
+        'https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap',
+        [],
+        '1.0'
+    );
 
     wp_enqueue_style(
         'kkwoo-classic-style',
         plugins_url('src/style.css', __FILE__),
         [],
-        $asset_version
+        KKWOO_ASSET_VERSION
     );
+
+    wp_localize_script('kkwoo-payment-flow-handler', 'KKWooData', $localized_data);
+
+
+    status_header(200);
+    header('Content-Type: text/html; charset=utf-8');
 
     ?>
     <!DOCTYPE html>
@@ -328,7 +367,8 @@ add_action('template_redirect', function () {
             <title>Lipa na M-PESA</title>
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <?php
-                wp_print_styles('kkwoo-classic-style');
+                wp_print_styles('kkwoo-google-font');
+    wp_print_styles('kkwoo-classic-style');
     ?>
         </head>
         <body>
@@ -339,7 +379,7 @@ add_action('template_redirect', function () {
                     <div class="modal-content"></div>
                     <div class="modal-footer">
                         Powered by
-                        <img src="<?= esc_url(plugins_url('images/svg/k2-logo-with-name.svg', __FILE__)) ?>">
+                        <img src="<?php echo esc_url(plugins_url('images/svg/k2-logo-with-name.svg', __FILE__)) ?>">
                     </div>
                 </div>
                 <p class='switch-to-manual-payments'>Having trouble? Pay via 
@@ -349,26 +389,11 @@ add_action('template_redirect', function () {
         </main>
 
         <?php
-        wp_print_scripts('jquery');
+    wp_print_scripts('jquery');
+    foreach ($scripts as $handle => $file) {
+        wp_print_scripts($handle);
+    }
     ?>
-
-        <script type="text/javascript">
-        window.KKWooData = <?= wp_json_encode($localized_data); ?>;
-        </script>
-
-        <script src="<?= esc_url(plugins_url('assets/js/ui-templates/ui-templates-init.js', __FILE__)); ?>?v=<?= $asset_version ?>"></script>
-        <script src="<?= esc_url(plugins_url('assets/js/ui-templates/mpesa-number-form.js', __FILE__)); ?>?v=<?= $asset_version ?>"></script>
-        <script src="<?= esc_url(plugins_url('assets/js/ui-templates/pin-instruction.js', __FILE__)); ?>?v=<?= $asset_version ?>"></script>
-        <script src="<?= esc_url(plugins_url('assets/js/ui-templates/polling.js', __FILE__)); ?>?v=<?= $asset_version ?>"></script>
-        <script src="<?= esc_url(plugins_url('assets/js/ui-templates/payment-success.js', __FILE__)); ?>?v=<?= $asset_version ?>"></script>
-        <script src="<?= esc_url(plugins_url('assets/js/ui-templates/payment-error.js', __FILE__)); ?>?v=<?= $asset_version ?>"></script>
-        <script src="<?= esc_url(plugins_url('assets/js/ui-templates/payment-no-result-yet.js', __FILE__)); ?>?v=<?= $asset_version ?>"></script>
-        <script src="<?= esc_url(plugins_url('assets/js/ui-templates/payment-refunded.js', __FILE__)); ?>?v=<?= $asset_version ?>"></script>
-        <script src="<?= esc_url(plugins_url('assets/js/ui-templates/manual-payment-instructions.js', __FILE__)); ?>?v=<?= $asset_version ?>"></script>
-
-        <script src="<?= esc_url(plugins_url('assets/js/polling-manager.js', __FILE__)); ?>?v=<?= $asset_version ?>"></script>
-        <script src="<?= esc_url(plugins_url('assets/js/k2-validations.js', __FILE__)); ?>?v=<?= $asset_version ?>"></script>
-        <script src="<?= esc_url(plugins_url('assets/js/k2-payment-flow-handler.js', __FILE__)); ?>?v=<?= $asset_version ?>"></script>
    </body>
     </html>
     <?php
