@@ -3,6 +3,38 @@
 // tests/fixtures/stk_callback_payloads.php
 
 return [
+    'validated_success' => function ($order_key) {
+        return [
+            'status' => 'success',
+            'data'   => [
+                'id' => '0895010c-fe23-473c-944a-3277971e239a',
+                'type' => 'incoming_payment',
+                'initiationTime' => '2026-02-12T07:38:56.896+03:00',
+                'status' => 'Success',
+                'eventType' => 'Buygoods Transaction',
+                'resourceId' => '0895010c-fe23-473c-944a-3277971e239a',
+                'reference' => '1770871136',
+                'originationTime' => '2026-02-12T07:38:56.932+03:00',
+                'senderPhoneNumber' => '+254928488111',
+                'amount' => '249.0',
+                'currency' => 'KES',
+                'tillNumber' => 'K343143',
+                'system' => 'Lipa Na MPESA',
+                'resourceStatus' => 'Received',
+                'senderFirstName' => 'Doreen',
+                'senderMiddleName' => '',
+                'senderLastName' => 'Chemweno',
+                'errors' => [],
+                'metadata' => [
+                    'notes' => 'Payment for invoice 1173',
+                    'reference' => $order_key, // use dynamic order key
+                    'customer_id' => 1,
+                ],
+                'linkSelf' => 'https://sandbox.kopokopo.com/api/v1/incoming_payments/0895010c-fe23-473c-944a-3277971e239a',
+                'callbackUrl' => 'https://example.com/wp-json/kkwoo/v1/stk-push-callback',
+            ],
+        ];
+    },
     'success' => function ($order_key) {
         return [
             'data' => [
@@ -43,7 +75,27 @@ return [
             ],
         ];
     },
-
+    'validated_failed' => function ($order_key) {
+        return [
+        "status" => "success",
+        "data" => [
+            "id" => "cac95329-9fa5-42f1-a4fc-c08af7b868fb",
+            "type" => "incoming_payment",
+            "initiationTime" => "2018-06-20T22:45:12.790Z",
+            "status" => "Failed",
+            "eventType" => "Incoming Payment Request",
+            "resource" => null,
+            "errors"  => "The balance is insufficient for the transaction",
+            "metadata" => [
+            "customer_id" => 0,
+            "reference" => $order_key,
+                            "notes" => 'Payment for invoice ' . $order_key,
+                            ],
+            "linkSelf" => "https://sandbox.kopokopo.com/payment_request_results/cac95329-9fa5-42f1-a4fc-c08af7b868fb",
+            "callbackUrl" => "https://webhook.site/fa3645c6-7199-426a-8efa-98e7b754babb",
+        ]
+        ];
+    },
     'failed' => function ($order_key) {
         return [
             'data' => [

@@ -1,0 +1,57 @@
+.kkwoo-admin-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 40px;
+  margin: 20px;
+}
+
+.kkwoo-admin-buttons .kkwoo-button-block {
+  flex: 1;
+  padding: 20px;
+  border: 1px solid #ccd0d4;
+  background: #fff;
+  border-radius: 4px;
+}
+
+.kkwoo-admin-buttons h2 {
+  margin-top: 0;
+}
+
+.kkwoo-message {
+  margin-top: 10px;
+  font-size: 13px;
+}
+
+.kkwoo-message.message {
+  color: #46b450;
+}
+
+.kkwoo-message.error {
+  color: #dc3232;
+}
+
+.kkwoo-loading {
+  opacity: 0.6;
+  pointer-events: none;
+  position: relative;
+}
+
+.kkwoo-loading::before {
+  content: '';
+  position: absolute;
+  left: calc(50% - 8px);
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  margin-top: -8px;
+  border: 2px solid #ccc;
+  border-top-color: #333;
+  border-radius: 50%;
+  animation: kkwoo-spin 0.6s linear infinite;
+}
+
+@keyframes kkwoo-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

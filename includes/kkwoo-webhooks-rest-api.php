@@ -12,6 +12,7 @@ use WP_REST_Response;
 use WP_Error;
 use KKWoo\Database\Manual_Payments_Tracker_repository;
 use KKWoo\ManualPayments\Manual_Payment_Service;
+use KKWoo\Security\Request_Validator;
 
 add_action('rest_api_init', function () {
     register_rest_route('kkwoo/v1', '/create-webhook-subscriptions', [
@@ -25,20 +26,20 @@ add_action('rest_api_init', function () {
     register_rest_route('kkwoo/v1', '/buygoods-transaction-received', [
         'methods'  => 'POST',
         'callback' => __NAMESPACE__ . '\\handle_buygoods_transaction_received',
-        'permission_callback' => '__return_true',
+        'permission_callback' => [Request_Validator::class, 'validate_webhook_signature_presence'],
     ]);
 
     register_rest_route('kkwoo/v1', '/b2b-transaction-received', [
         'methods'  => 'POST',
         'callback' => __NAMESPACE__ . '\\handle_b2b_transaction_received',
-        'permission_callback' => '__return_true',
+        'permission_callback' => [Request_Validator::class, 'validate_webhook_signature_presence'],
     ]);
 });
 
 function create_webhook_subscription($event_type, $till = null): bool
 {
     try {
-        $access_token = \K2_Authorization::get_access_token();
+        $access_token = \KKWoo_Authorization::get_access_token();
         if (empty($access_token)) {
             \KKWoo_Logger::log(\KKWoo_User_Friendly_Messages::get('auth_token_error'), 'error');
             return false;
@@ -47,7 +48,7 @@ function create_webhook_subscription($event_type, $till = null): bool
         $gateways = \WC()->payment_gateways()->payment_gateways();
         $kkwoo = $gateways['kkwoo'];
 
-        $k2 = \K2_Authorization::getClient($kkwoo);
+        $k2 = \KKWoo_Authorization::getClient($kkwoo);
         $webhooks = $k2->Webhooks();
 
         $response = $webhooks->subscribe([
@@ -134,23 +135,6 @@ function handle_create_webhook_subscriptions()
     }
 }
 
-function validate_webhook_request(WP_REST_Request $request): array
-{
-    $gateways = \WC()->payment_gateways()->payment_gateways();
-    $kkwoo = $gateways['kkwoo'];
-
-    $k2 = \K2_Authorization::getClient($kkwoo);
-    $webhooks = $k2->Webhooks();
-
-    $webhook_payload = $request->get_body();
-
-    $signature = sanitize_text_field(wp_unslash($_SERVER['HTTP_X_KOPOKOPO_SIGNATURE'] ?? ''));
-
-    $response = $webhooks->webhookHandler($webhook_payload, $signature);
-    return $response;
-}
-
-
 function handle_buygoods_transaction_received(WP_REST_Request $request)
 {
     process_request($request);
@@ -166,7 +150,7 @@ function handle_b2b_transaction_received(WP_REST_Request $request)
 
 function process_request(WP_REST_Request $request)
 {
-    $validated_response = validate_webhook_request($request);
+    $validated_response =  Request_Validator::validate_callback_request($request);
 
     $status    = $validated_response['status'] ?? '';
     $data      = $validated_response['data'] ?? [];

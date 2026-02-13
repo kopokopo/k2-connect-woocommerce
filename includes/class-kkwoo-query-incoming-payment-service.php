@@ -20,7 +20,7 @@ class KKWoo_Query_Incoming_Payment_Status_Service
             return new WP_Error('missing_location_url', KKWoo_User_Friendly_Messages::get('generic_customer_message'));
         }
 
-        $access_token = K2_Authorization::get_access_token();
+        $access_token = KKWoo_Authorization::get_access_token();
         if (empty($access_token)) {
             KKWoo_Logger::log(KKWoo_User_Friendly_Messages::get('auth_token_error'), 'error');
             return new WP_Error('auth_error', KKWoo_User_Friendly_Messages::get('generic_customer_message'));
@@ -34,7 +34,7 @@ class KKWoo_Query_Incoming_Payment_Status_Service
         $gateways = WC()->payment_gateways()->payment_gateways();
         $kkwoo = $gateways['kkwoo'];
 
-        $k2       = K2_Authorization::getClient($kkwoo);
+        $k2       = KKWoo_Authorization::getClient($kkwoo);
         $stk      = $k2->StkService();
         $response = $stk->getStatus($input);
 
@@ -182,10 +182,9 @@ class KKWoo_Query_Incoming_Payment_Status_Service
         if (!$order->has_status('processing') && !$order->has_status('completed')) {
             $order->payment_complete($data['id']);
             $order->add_order_note(sprintf(
-                'Payment received via Kopo Kopo for WooCommerce. Amount: %s %s. Phone: %s',
+                'Payment received via Kopo Kopo for WooCommerce. Amount: %s %s.',
                 get_woocommerce_currency_symbol($order->get_currency()),
-                $data['amount'],
-                $data['senderPhoneNumber']
+                $data['amount']
             ));
             $order->update_meta_data('kkwoo_payment_error_msg', '');
             $order->save();

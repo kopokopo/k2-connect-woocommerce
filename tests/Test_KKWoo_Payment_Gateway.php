@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Test WC_Gateway_K2_Payment class.
+ * Test KKWoo_Payment_Gateway class.
  */
-class Test_WC_Gateway_K2_Payment extends WP_UnitTestCase
+class Test_KKWoo_Payment_Gateway extends WP_UnitTestCase
 {
-    /** @var WC_Gateway_K2_Payment */
+    /** @var KKWoo_Payment_Gateway */
     private $gateway;
 
     /** @var WC_Order  */
@@ -24,10 +24,10 @@ class Test_WC_Gateway_K2_Payment extends WP_UnitTestCase
         }
 
         // Load your gateway class
-        require_once __DIR__ . '/../includes/class-wc-gateway-k2-payment.php';
+        require_once __DIR__ . '/../includes/class-kkwoo-payment-gateway.php';
 
         // Instantiate the gateway
-        $this->gateway = new WC_Gateway_K2_Payment();
+        $this->gateway = new KKWoo_Payment_Gateway();
 
         // Define form fields (required before setting or loading settings)
         $this->gateway->init_form_fields();
@@ -55,7 +55,7 @@ class Test_WC_Gateway_K2_Payment extends WP_UnitTestCase
 
     public function test_gateway_class_exists(): void
     {
-        $this->assertInstanceOf(WC_Gateway_K2_Payment::class, $this->gateway);
+        $this->assertInstanceOf(KKWoo_Payment_Gateway::class, $this->gateway);
     }
 
     public function test_process_admin_options_hook_registered(): void
@@ -212,6 +212,8 @@ class Test_WC_Gateway_K2_Payment extends WP_UnitTestCase
 
         $this->gateway->init_settings();
 
+        $_GET['section'] = $this->gateway->id;
+
         ob_start();
         $this->gateway->admin_missing_settings_notice();
         $output = ob_get_clean();
@@ -245,8 +247,8 @@ class Test_WC_Gateway_K2_Payment extends WP_UnitTestCase
 
     public function test_admin_currency_warning_outputs_warning_if_not_kes(): void
     {
-        /** @var WC_Gateway_K2_Payment&\PHPUnit\Framework\MockObject\MockObject $gateway */
-        $gateway = $this->getMockBuilder(WC_Gateway_K2_Payment::class)
+        /** @var KKWoo_Payment_Gateway&\PHPUnit\Framework\MockObject\MockObject $gateway */
+        $gateway = $this->getMockBuilder(KKWoo_Payment_Gateway::class)
             ->disableOriginalConstructor() // don’t run constructor
             ->onlyMethods(['wp_is_admin', 'wp_get_currency'])
             ->getMock();
@@ -254,6 +256,9 @@ class Test_WC_Gateway_K2_Payment extends WP_UnitTestCase
         $gateway->method('wp_is_admin')->willReturn(true);
         $gateway->method('wp_get_currency')->willReturn('USD');
         $gateway->enabled = 'yes';
+
+        $gateway->id = 'kkwoo';
+        $_GET['section'] = 'kkwoo';
 
         ob_start();
         $gateway->admin_currency_warning();
@@ -268,8 +273,8 @@ class Test_WC_Gateway_K2_Payment extends WP_UnitTestCase
 
     public function test_admin_currency_warning_outputs_nothing_if_not_kes_and_not_admin(): void
     {
-        /** @var WC_Gateway_K2_Payment&\PHPUnit\Framework\MockObject\MockObject $gateway */
-        $gateway = $this->getMockBuilder(WC_Gateway_K2_Payment::class)
+        /** @var KKWoo_Payment_Gateway&\PHPUnit\Framework\MockObject\MockObject $gateway */
+        $gateway = $this->getMockBuilder(KKWoo_Payment_Gateway::class)
             ->disableOriginalConstructor() // don’t run constructor
             ->onlyMethods(['wp_is_admin', 'wp_get_currency'])
             ->getMock();
@@ -287,8 +292,8 @@ class Test_WC_Gateway_K2_Payment extends WP_UnitTestCase
 
     public function test_admin_currency_warning_outputs_nothing_if_kes(): void
     {
-        /** @var WC_Gateway_K2_Payment&\PHPUnit\Framework\MockObject\MockObject $gateway */
-        $gateway = $this->getMockBuilder(WC_Gateway_K2_Payment::class)
+        /** @var KKWoo_Payment_Gateway&\PHPUnit\Framework\MockObject\MockObject $gateway */
+        $gateway = $this->getMockBuilder(KKWoo_Payment_Gateway::class)
             ->disableOriginalConstructor() // don’t run constructor
             ->onlyMethods(['wp_is_admin', 'wp_get_currency'])
             ->getMock();
@@ -306,8 +311,8 @@ class Test_WC_Gateway_K2_Payment extends WP_UnitTestCase
 
     public function test_get_icon_returns_custom_icon_when_not_admin(): void
     {
-        /** @var WC_Gateway_K2_Payment&\PHPUnit\Framework\MockObject\MockObject $gateway */
-        $gateway = $this->getMockBuilder(WC_Gateway_K2_Payment::class)
+        /** @var KKWoo_Payment_Gateway&\PHPUnit\Framework\MockObject\MockObject $gateway */
+        $gateway = $this->getMockBuilder(KKWoo_Payment_Gateway::class)
             ->disableOriginalConstructor()
             ->onlyMethods(['wp_is_admin'])
             ->getMock();
@@ -325,8 +330,8 @@ class Test_WC_Gateway_K2_Payment extends WP_UnitTestCase
 
     public function test_get_icon_delegates_to_parent_when_admin(): void
     {
-        /** @var WC_Gateway_K2_Payment&\PHPUnit\Framework\MockObject\MockObject $gateway */
-        $gateway = $this->getMockBuilder(WC_Gateway_K2_Payment::class)
+        /** @var KKWoo_Payment_Gateway&\PHPUnit\Framework\MockObject\MockObject $gateway */
+        $gateway = $this->getMockBuilder(KKWoo_Payment_Gateway::class)
             ->onlyMethods(['wp_is_admin'])
             ->getMock();
 
@@ -343,8 +348,8 @@ class Test_WC_Gateway_K2_Payment extends WP_UnitTestCase
      */
     public function test_is_available($enabled, $configured, $currency, $expected): void
     {
-        /** @var WC_Gateway_K2_Payment&\PHPUnit\Framework\MockObject\MockObject $gateway */
-        $gateway = $this->getMockBuilder(WC_Gateway_K2_Payment::class)
+        /** @var KKWoo_Payment_Gateway&\PHPUnit\Framework\MockObject\MockObject $gateway */
+        $gateway = $this->getMockBuilder(KKWoo_Payment_Gateway::class)
             ->onlyMethods(['is_configured', 'wp_get_currency'])
             ->getMock();
 

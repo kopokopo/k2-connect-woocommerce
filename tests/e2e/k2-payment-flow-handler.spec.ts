@@ -15,6 +15,7 @@ let page: Page;
 const WP_SITE_URL = process.env.WP_SITE_URL;
 const WP_CUSTOMER_USER_NAME = process.env.WP_CUSTOMER_USER_NAME;
 const WP_CUSTOMER_PASSWORD = process.env.WP_CUSTOMER_PASSWORD;
+const KKWOO_PAYMENT_PAGE_URL = 'lipa-na-mpesa-k2/?kkwoo_order_key='
 
 test.describe("Unit Tests for the Lipa na M-PESA payment flow", () => {
   test("the mpesa number section details are correct", async ({
@@ -23,7 +24,7 @@ test.describe("Unit Tests for the Lipa na M-PESA payment flow", () => {
   }) => {
     const newOrder = await order();
     await page.goto(
-      `${WP_SITE_URL}/lipa-na-mpesa-k2/?order_key=${newOrder.order_key}`
+      `${WP_SITE_URL}/${KKWOO_PAYMENT_PAGE_URL}${newOrder.order_key}`
     );
     await expect(page.locator("#currency")).toHaveText("KSh");
     await expect(page.locator("#total-amount")).toHaveText(`${newOrder.total}`);
@@ -35,7 +36,7 @@ test.describe("Unit Tests for the Lipa na M-PESA payment flow", () => {
   }) => {
     const newOrder = await order();
     await page.goto(
-      `${WP_SITE_URL}/lipa-na-mpesa-k2/?order_key=${newOrder.order_key}`
+      `${WP_SITE_URL}/${KKWOO_PAYMENT_PAGE_URL}${newOrder.order_key}`
     );
     page.click("#proceed-to-pay-btn");
     await expect(page.locator(".message.error")).toHaveText(
@@ -55,7 +56,7 @@ test.describe("Unit Tests for the Lipa na M-PESA payment flow", () => {
   }) => {
     const newOrder = await order();
     await page.goto(
-      `${WP_SITE_URL}/lipa-na-mpesa-k2/?order_key=${newOrder.order_key}`
+      `${WP_SITE_URL}/${KKWOO_PAYMENT_PAGE_URL}${newOrder.order_key}`
     );
 
     await page.fill("#mpesa-phone-input", "923456789");
@@ -79,7 +80,7 @@ test.describe("Unit Tests for the Lipa na M-PESA payment flow", () => {
   }) => {
     const newOrder = await order();
     await page.goto(
-      `${WP_SITE_URL}/lipa-na-mpesa-k2/?order_key=${newOrder.order_key}`
+      `${WP_SITE_URL}/${KKWOO_PAYMENT_PAGE_URL}${newOrder.order_key}`
     );
 
     await page.fill("#mpesa-phone-input", "923456789");
@@ -112,7 +113,7 @@ test.describe("Unit Tests for the Lipa na M-PESA payment flow", () => {
     const newOrder = await order();
     await page.clock.install({ time: new Date("2025-02-02T08:00:00") });
     await page.goto(
-      `${WP_SITE_URL}/lipa-na-mpesa-k2/?order_key=${newOrder.order_key}`
+      `${WP_SITE_URL}/${KKWOO_PAYMENT_PAGE_URL}${newOrder.order_key}`
     );
 
     await page.fill("#mpesa-phone-input", "923456789");
@@ -148,7 +149,7 @@ test.describe("Unit Tests for the Lipa na M-PESA payment flow", () => {
   }) => {
     const newOrder = await order("pending");
     await page.goto(
-      `${WP_SITE_URL}/lipa-na-mpesa-k2/?order_key=${newOrder.order_key}`
+      `${WP_SITE_URL}/${KKWOO_PAYMENT_PAGE_URL}${newOrder.order_key}`
     );
 
     await page.reload();
@@ -162,7 +163,7 @@ test.describe("Unit Tests for the Lipa na M-PESA payment flow", () => {
   }) => {
     const newOrder = await order("on-hold");
     await page.goto(
-      `${WP_SITE_URL}/lipa-na-mpesa-k2/?order_key=${newOrder.order_key}`
+      `${WP_SITE_URL}/${KKWOO_PAYMENT_PAGE_URL}${newOrder.order_key}`
     );
 
     await page.reload();
@@ -178,7 +179,7 @@ test.describe("Unit Tests for the Lipa na M-PESA payment flow", () => {
   }) => {
     const newOrder = await order("failed");
     await page.goto(
-      `${WP_SITE_URL}/lipa-na-mpesa-k2/?order_key=${newOrder.order_key}`
+      `${WP_SITE_URL}/${KKWOO_PAYMENT_PAGE_URL}${newOrder.order_key}`
     );
 
     await page.reload();
@@ -192,7 +193,7 @@ test.describe("Unit Tests for the Lipa na M-PESA payment flow", () => {
   }) => {
     const newOrder = await order("failed");
     await page.goto(
-      `${WP_SITE_URL}/lipa-na-mpesa-k2/?order_key=${newOrder.order_key}`
+      `${WP_SITE_URL}/${KKWOO_PAYMENT_PAGE_URL}${newOrder.order_key}`
     );
 
     await page.reload();
@@ -206,7 +207,7 @@ test.describe("Unit Tests for the Lipa na M-PESA payment flow", () => {
   }) => {
     const newOrder = await order("processing");
     await page.goto(
-      `${WP_SITE_URL}/lipa-na-mpesa-k2/?order_key=${newOrder.order_key}`
+      `${WP_SITE_URL}/${KKWOO_PAYMENT_PAGE_URL}${newOrder.order_key}`
     );
 
     await page.reload();
@@ -220,7 +221,7 @@ test.describe("Unit Tests for the Lipa na M-PESA payment flow", () => {
   }) => {
     const newOrder = await order("on-hold");
     await page.goto(
-      `${WP_SITE_URL}/lipa-na-mpesa-k2/?order_key=${newOrder.order_key}`
+      `${WP_SITE_URL}/${KKWOO_PAYMENT_PAGE_URL}${newOrder.order_key}`
     );
 
     await page.reload();

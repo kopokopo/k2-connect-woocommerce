@@ -14,7 +14,7 @@ class KKWoo_Logger
     {
         if (class_exists('WC_Logger')) {
             $logger  = wc_get_logger();
-            $context = [ 'source' => 'kkwoo' ];
+            $context = [ 'source' => 'kopo-kopo-for-woocommerce-logger' ];
 
             // Always log errors, but log "info/debug" only when WP_DEBUG is true
             if ($level === 'error' || (defined('WP_DEBUG') && WP_DEBUG)) {

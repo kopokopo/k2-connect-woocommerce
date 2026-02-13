@@ -11,6 +11,6 @@ class KKWoo_Activation_Service
     public static function activate(): void
     {
         Manual_Payments_Tracker_repository::create_table();
-        K2_Payment_Page::flush_rules();
+        KKWoo_Payment_Page::flush_rules();
     }
 }

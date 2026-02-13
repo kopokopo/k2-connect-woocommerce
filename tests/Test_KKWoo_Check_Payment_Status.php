@@ -3,9 +3,9 @@
 /**
  * Test WC_K2_Check_Payment_Status class.
  */
-class Test_WC_K2_Check_Payment_Status extends WP_UnitTestCase
+class Test_KKWoo_Check_Payment_Status extends WP_UnitTestCase
 {
-    /** @var WC_K2_Check_Payment_Status */
+    /** @var KKWoo_Check_Payment_Status */
     private $check_payment_status;
 
     /** @var WC_Order */
@@ -31,7 +31,7 @@ class Test_WC_K2_Check_Payment_Status extends WP_UnitTestCase
         $this->order->save();
 
         // Initialize the class under test
-        $this->check_payment_status = new WC_K2_Check_Payment_Status();
+        $this->check_payment_status = new KKWoo_Check_Payment_Status();
     }
 
     public function tearDown(): void
@@ -50,19 +50,19 @@ class Test_WC_K2_Check_Payment_Status extends WP_UnitTestCase
     {
         // Test woocommerce_order_actions hook
         $this->assertNotFalse(
-            has_action('woocommerce_order_actions', [$this->check_payment_status, 'k2_custom_order_actions']),
+            has_action('woocommerce_order_actions', [$this->check_payment_status, 'custom_order_actions']),
             'woocommerce_order_actions hook should be registered'
         );
 
-        // Test woocommerce_order_action_wc_k2_check_payment_status_action hook
+        // Test woocommerce_order_action_check_payment_status_action hook
         $this->assertNotFalse(
-            has_action('woocommerce_order_action_wc_k2_check_payment_status_action', [$this->check_payment_status, 'wc_k2_check_payment_status_action']),
-            'woocommerce_order_action_wc_k2_check_payment_status_action hook should be registered'
+            has_action('woocommerce_order_action_check_payment_status_action', [$this->check_payment_status, 'check_payment_status_action']),
+            'woocommerce_order_action_check_payment_status_action hook should be registered'
         );
 
         // Test woocommerce_order_details_before_order_table hook
         $this->assertNotFalse(
-            has_action('woocommerce_order_details_before_order_table', [$this->check_payment_status, 'wc_k2_customer_check_payment_status_action']),
+            has_action('woocommerce_order_details_before_order_table', [$this->check_payment_status, 'customer_check_payment_status_action']),
             'woocommerce_order_details_before_order_table hook should be registered'
         );
 
@@ -71,20 +71,20 @@ class Test_WC_K2_Check_Payment_Status extends WP_UnitTestCase
     }
 
     /**
-     * Test k2_custom_order_actions method adds custom action
+     * Test custom_order_actions method adds custom action
      */
-    public function test_k2_custom_order_actions(): void
+    public function test_custom_order_actions(): void
     {
         $initial_actions = [
             'send_order_details' => 'Send order details to customer',
             'regenerate_download_permissions' => 'Regenerate download permissions'
         ];
 
-        $result = $this->check_payment_status->k2_custom_order_actions($initial_actions);
+        $result = $this->check_payment_status->custom_order_actions($initial_actions);
 
         // Should add our custom action
-        $this->assertArrayHasKey('wc_k2_check_payment_status_action', $result);
-        $this->assertEquals('Check payment status', $result['wc_k2_check_payment_status_action']);
+        $this->assertArrayHasKey('check_payment_status_action', $result);
+        $this->assertEquals('Check payment status', $result['check_payment_status_action']);
 
         // Should preserve existing actions
         $this->assertArrayHasKey('send_order_details', $result);
@@ -93,29 +93,29 @@ class Test_WC_K2_Check_Payment_Status extends WP_UnitTestCase
     }
 
     /**
-     * Test k2_custom_order_actions with empty array
+     * Test custom_order_actions with empty array
      */
-    public function test_k2_custom_order_actions_empty_array(): void
+    public function test_custom_order_actions_empty_array(): void
     {
-        $result = $this->check_payment_status->k2_custom_order_actions([]);
+        $result = $this->check_payment_status->custom_order_actions([]);
 
-        $this->assertArrayHasKey('wc_k2_check_payment_status_action', $result);
+        $this->assertArrayHasKey('check_payment_status_action', $result);
         $this->assertCount(1, $result);
     }
 
     /**
-     * Test wc_k2_check_payment_status_action with valid order
+     * Test check_payment_status_action with valid order
      */
-    public function test_wc_k2_check_payment_status_action_valid_order(): void
+    public function test_check_payment_status_action_valid_order(): void
     {
         $this->assertInstanceOf(WC_Order::class, $this->order);
-        $this->assertTrue(method_exists($this->check_payment_status, 'wc_k2_check_payment_status_action'));
+        $this->assertTrue(method_exists($this->check_payment_status, 'check_payment_status_action'));
     }
 
     /**
      * Test customer check payment status action with valid conditions
      */
-    public function test_wc_k2_customer_check_payment_status_action_valid_conditions(): void
+    public function test_customer_check_payment_status_action_valid_conditions(): void
     {
         // Set up order with correct conditions
         $this->order->set_status('on-hold');
@@ -123,7 +123,7 @@ class Test_WC_K2_Check_Payment_Status extends WP_UnitTestCase
         $this->order->save();
 
         ob_start();
-        $this->check_payment_status->wc_k2_customer_check_payment_status_action($this->order);
+        $this->check_payment_status->customer_check_payment_status_action($this->order);
         $output = ob_get_clean();
 
         $this->assertStringContainsString('id="kkwoo-flash-messages"', $output);
@@ -136,7 +136,7 @@ class Test_WC_K2_Check_Payment_Status extends WP_UnitTestCase
     /**
      * Test customer check payment status action with wrong status
      */
-    public function test_wc_k2_customer_check_payment_status_action_wrong_status(): void
+    public function test_customer_check_payment_status_action_wrong_status(): void
     {
         // Set up order with wrong status
         $this->order->set_status('completed');
@@ -144,7 +144,7 @@ class Test_WC_K2_Check_Payment_Status extends WP_UnitTestCase
         $this->order->save();
 
         ob_start();
-        $this->check_payment_status->wc_k2_customer_check_payment_status_action($this->order);
+        $this->check_payment_status->customer_check_payment_status_action($this->order);
         $output = ob_get_clean();
 
         $this->assertEmpty($output);
@@ -153,7 +153,7 @@ class Test_WC_K2_Check_Payment_Status extends WP_UnitTestCase
     /**
      * Test customer check payment status action with wrong payment method
      */
-    public function test_wc_k2_customer_check_payment_status_action_wrong_payment_method(): void
+    public function test_customer_check_payment_status_action_wrong_payment_method(): void
     {
         // Set up order with wrong payment method
         $this->order->set_status('on-hold');
@@ -161,7 +161,7 @@ class Test_WC_K2_Check_Payment_Status extends WP_UnitTestCase
         $this->order->save();
 
         ob_start();
-        $this->check_payment_status->wc_k2_customer_check_payment_status_action($this->order);
+        $this->check_payment_status->customer_check_payment_status_action($this->order);
         $output = ob_get_clean();
 
         $this->assertEmpty($output);
@@ -172,11 +172,18 @@ class Test_WC_K2_Check_Payment_Status extends WP_UnitTestCase
      */
     public function test_admin_notices(): void
     {
+        $mock = $this->getMockBuilder(\KKWoo_Check_Payment_Status::class)
+            ->onlyMethods(['is_admin_order_view_page'])
+            ->getMock();
+
+        $mock->method('is_admin_order_view_page')
+            ->willReturn(true);
+
         // Set a transient message
         set_transient('kkwoo_admin_notice', 'Test payment status message', 30);
 
         ob_start();
-        $this->check_payment_status->show_admin_notice();
+        $mock->show_admin_notice();
         $output = ob_get_clean();
 
         $this->assertStringContainsString('class="notice notice-info is-dismissible"', $output);
@@ -191,11 +198,18 @@ class Test_WC_K2_Check_Payment_Status extends WP_UnitTestCase
      */
     public function test_admin_notices_no_message(): void
     {
+        $mock = $this->getMockBuilder(\KKWoo_Check_Payment_Status::class)
+            ->onlyMethods(['is_admin_order_view_page'])
+            ->getMock();
+
+        $mock->method('is_admin_order_view_page')
+            ->willReturn(true);
+
         // Ensure no transient exists
         delete_transient('kkwoo_admin_notice');
 
         ob_start();
-        $this->check_payment_status->show_admin_notice();
+        $mock->show_admin_notice();
         $output = ob_get_clean();
 
         $this->assertStringNotContainsString('notice notice-info', $output);
@@ -209,8 +223,15 @@ class Test_WC_K2_Check_Payment_Status extends WP_UnitTestCase
         $malicious_message = '<script>alert("xss")</script>Payment updated';
         set_transient('kkwoo_admin_notice', $malicious_message);
 
+        $mock = $this->getMockBuilder(\KKWoo_Check_Payment_Status::class)
+            ->onlyMethods(['is_admin_order_view_page'])
+            ->getMock();
+
+        $mock->method('is_admin_order_view_page')
+            ->willReturn(true);
+
         ob_start();
-        $this->check_payment_status->show_admin_notice();
+        $mock->show_admin_notice();
         $output = ob_get_clean();
 
         $this->assertStringNotContainsString('<script>', $output);
@@ -226,8 +247,8 @@ class Test_WC_K2_Check_Payment_Status extends WP_UnitTestCase
         $actions = [];
         $filtered_actions = apply_filters('woocommerce_order_actions', $actions);
 
-        $this->assertArrayHasKey('wc_k2_check_payment_status_action', $filtered_actions);
-        $this->assertEquals('Check payment status', $filtered_actions['wc_k2_check_payment_status_action']);
+        $this->assertArrayHasKey('check_payment_status_action', $filtered_actions);
+        $this->assertEquals('Check payment status', $filtered_actions['check_payment_status_action']);
     }
 
     /**
@@ -241,7 +262,7 @@ class Test_WC_K2_Check_Payment_Status extends WP_UnitTestCase
         $order->method('get_payment_method')->willReturn('kkwoo');
 
         ob_start();
-        $this->check_payment_status->wc_k2_customer_check_payment_status_action($order);
+        $this->check_payment_status->customer_check_payment_status_action($order);
         $output = ob_get_clean();
 
         if ($status === 'on-hold') {
@@ -265,7 +286,7 @@ class Test_WC_K2_Check_Payment_Status extends WP_UnitTestCase
         $order->method('get_payment_method')->willReturn('kkwoo');
 
         ob_start();
-        $this->check_payment_status->wc_k2_customer_check_payment_status_action($this->order);
+        $this->check_payment_status->customer_check_payment_status_action($this->order);
         $output = ob_get_clean();
 
         if ($payment_method === 'kkwoo') {

@@ -137,6 +137,7 @@ window.addEventListener("beforeunload", function (e) {
             const response = jqXHR.responseJSON;
             errorMessage =
               response?.data?.data?.errorMessage ??
+              response?.message ??
               response?.data ??
               "Something went wrong. Please try again.";
           } catch (e) {
@@ -177,8 +178,8 @@ window.addEventListener("beforeunload", function (e) {
             const response = jqXHR.responseJSON;
             errorMessage =
               response?.data?.data?.errorMessage ??
-              response?.data ??
               response?.message ??
+              response?.data ??
               "Something went wrong. Please try again.";
           } catch (e) {
             errorMessage = "Something went wrong. Please try again.";
@@ -194,7 +195,7 @@ window.addEventListener("beforeunload", function (e) {
 
     function getSelectedManualPaymentMethod() {
       $.ajax({
-        url: "/wp-json/kkwoo/v1/selected-manual-payment-method",
+        url: `/wp-json/kkwoo/v1/selected-manual-payment-method/${KKWooData.order_key}`,
         method: "GET",
         contentType: "application/json",
         headers: {
@@ -213,8 +214,8 @@ window.addEventListener("beforeunload", function (e) {
             const response = jqXHR.responseJSON;
             errorMessage =
               response?.data?.data?.errorMessage ??
-              response?.data ??
               response?.message ??
+              response?.data ??
               "Something went wrong. Please try again.";
           } catch (e) {
             errorMessage = "Something went wrong. Please try again.";

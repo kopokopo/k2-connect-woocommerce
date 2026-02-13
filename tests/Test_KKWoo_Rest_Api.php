@@ -1,6 +1,6 @@
 <?php
 
-class Test_rest_api extends WP_UnitTestCase
+class Test_KKWoo_Rest_Api extends WP_UnitTestCase
 {
     /** @var WC_Order  */
     private $order;
@@ -63,6 +63,13 @@ class Test_rest_api extends WP_UnitTestCase
         $request->set_param('phone', '700000000');
         $request->set_param('order_key', 'non_existent_key');
 
+        $mockValidator = $this->getMockBuilder(\KKWoo\Security\Request_Validator::class)
+                      ->onlyMethods(['validate_stk_push_callback'])
+                      ->getMock();
+
+        $mockValidator->method('validate_stk_push_callback')
+                    ->willReturn(true);
+
         $response = rest_get_server()->dispatch($request);
 
         $this->assertEquals(400, $response->get_status());
@@ -89,7 +96,7 @@ class Test_rest_api extends WP_UnitTestCase
         $request = new WP_REST_Request('POST', '/kkwoo/v1/stk-push-callback');
         $request->set_body_params([]);
 
-        $response = kkwoo_handle_stk_push_callback($request);
+        $response = kkwoo_process_stk_push_callback($request);
 
         $this->assertEquals(400, $response->get_status());
         $this->assertEquals('error', $response->get_data()['status']);
@@ -98,13 +105,13 @@ class Test_rest_api extends WP_UnitTestCase
 
     public function test_callback_returns_error_if_missing_reference(): void
     {
-        $payload = $this->payloads['failed']('');
+        $payload = $this->payloads['validated_failed']('');
 
         $request = new WP_REST_Request('POST', '/kkwoo/v1/stk-push-callback');
         $request->set_body(json_encode($payload));
         $request->set_header('Content-Type', 'application/json');
 
-        $response = kkwoo_handle_stk_push_callback($request);
+        $response = kkwoo_process_stk_push_callback($request);
 
         $this->assertEquals(400, $response->get_status());
         $this->assertEquals('error', $response->get_data()['status']);
@@ -113,13 +120,13 @@ class Test_rest_api extends WP_UnitTestCase
 
     public function test_callback_returns_error_if_order_not_found(): void
     {
-        $payload = $this->payloads['success']('non_existent_key');
+        $payload = $this->payloads['validated_success']('non_existent_key');
 
         $request = new WP_REST_Request('POST', '/kkwoo/v1/stk-push-callback');
         $request->set_body(json_encode($payload));
         $request->set_header('Content-Type', 'application/json');
 
-        $response = kkwoo_handle_stk_push_callback($request);
+        $response = kkwoo_process_stk_push_callback($request);
 
         $this->assertEquals(404, $response->get_status());
         $this->assertEquals('error', $response->get_data()['status']);
@@ -131,13 +138,13 @@ class Test_rest_api extends WP_UnitTestCase
         $this->order->set_status('on-hold');
         $this->order->save();
         $order_key = $this->order->get_order_key();
-        $payload = $this->payloads['success']($order_key);
+        $payload = $this->payloads['validated_success']($order_key);
 
         $request = new WP_REST_Request('POST', '/kkwoo/v1/stk-push-callback');
         $request->set_body(json_encode($payload));
         $request->set_header('Content-Type', 'application/json');
 
-        $response = kkwoo_handle_stk_push_callback($request);
+        $response = kkwoo_process_stk_push_callback($request);
 
         $this->assertEquals(200, $response->get_status());
         $this->assertEquals('success', $response->get_data()['status']);
@@ -153,13 +160,13 @@ class Test_rest_api extends WP_UnitTestCase
         $this->order->save();
         $order_key = $this->order->get_order_key();
 
-        $payload = $this->payloads['failed']($order_key);
+        $payload = $this->payloads['validated_failed']($order_key);
 
         $request = new WP_REST_Request('POST', '/kkwoo/v1/stk-push-callback');
         $request->set_body(json_encode($payload));
         $request->set_header('Content-Type', 'application/json');
 
-        $response = kkwoo_handle_stk_push_callback($request);
+        $response = kkwoo_process_stk_push_callback($request);
 
         $this->assertEquals(200, $response->get_status());
         $this->assertEquals('error', $response->get_data()['status']);

@@ -2,6 +2,8 @@
 
 namespace KKWoo\Database;
 
+use KKWoo_Logger;
+
 class Manual_Payments_Tracker_repository
 {
     private static $base_table_name = 'kkwoo_manual_payments_tracker';

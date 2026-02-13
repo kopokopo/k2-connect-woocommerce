@@ -4,29 +4,31 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
+use KKWoo\Security\Request_Validator;
+
 add_action('rest_api_init', function () {
     register_rest_route('kkwoo/v1', '/stk-push', [
         'methods'  => 'POST',
         'callback' => 'kkwoo_handle_stk_push',
-        'permission_callback' => '__return_true',
+        'permission_callback' => [Request_Validator::class, 'validate_order_access'],
     ]);
 
     register_rest_route('kkwoo/v1', '/stk-push-callback', [
         'methods'  => 'POST',
         'callback' => 'kkwoo_handle_stk_push_callback',
-        'permission_callback' => '__return_true',
+        'permission_callback' => [Request_Validator::class, 'validate_stk_push_callback'],
     ]);
 
     register_rest_route('kkwoo/v1', '/payment-status', [
         'methods' => 'GET',
         'callback' => 'kkwoo_get_payment_status',
-        'permission_callback' => '__return_true',
+        'permission_callback' => [Request_Validator::class, 'validate_order_access'],
     ]);
 
     register_rest_route('kkwoo/v1', '/query-incoming-payment-status', [
         'methods' => 'GET',
         'callback' => 'kkwoo_handle_query_incoming_payment_status',
-        'permission_callback' => '__return_true',
+        'permission_callback' => [Request_Validator::class, 'validate_order_access'],
     ]);
 });
 
@@ -53,7 +55,7 @@ function kkwoo_handle_stk_push(WP_REST_Request $request)
         return new WP_REST_Response(['status' => 'error', 'data' => KKWoo_User_Friendly_Messages::get('invalid_order_status')], 400);
     }
 
-    require_once __DIR__ . '/stk-service.php';
+    require_once __DIR__ . '/kkwoo-stk-service.php';
     $response = kkwoo_send_stk_push($phone, $order);
 
     if (is_wp_error($response)) {
@@ -82,20 +84,25 @@ function kkwoo_handle_stk_push(WP_REST_Request $request)
 
 function kkwoo_handle_stk_push_callback(WP_REST_Request $request)
 {
-    $payload = $request->get_json_params();
+    $validated_response = Request_Validator::validate_callback_request($request);
+    return kkwoo_process_stk_push_callback($validated_response);
+}
 
-    if (empty($payload['data'])) {
+function kkwoo_process_stk_push_callback($validated_response)
+{
+
+    if (empty($validated_response['data'])) {
         KKWoo_Logger::log(KKWoo_User_Friendly_Messages::get('invalid_stk_push_callback_data'), 'error');
         return new WP_REST_Response(['status' => 'error', 'message' => 'Invalid callback data'], 400);
     }
 
-    $attributes = $payload['data']['attributes'] ?? [];
-    $metadata   = $attributes['metadata'] ?? [];
-    $event      = $attributes['event'] ?? [];
-    $status     = $attributes['status'] ?? '';
-    $resource   = $event['resource'] ?? [];
-    $errors     = $event['errors'] ?? [];
-    $reference  = $metadata['reference'] ?? null;
+    $data              = $validated_response['data'];
+    $metadata          = $data['metadata'] ?? [];
+    $status            = $data['status'] ?? '';
+    $resource_status   = $data['resourceStatus'] ?? null;
+    $errors            = $data['errors'] ?? [];
+    $reference         = $metadata['reference'] ?? null;
+    $resource_id       = $data['resourceId'] ?? null;
 
     if (!$reference) {
         KKWoo_Logger::log(KKWoo_User_Friendly_Messages::get('invalid_stk_push_callback_data'), 'error');
@@ -118,14 +125,14 @@ function kkwoo_handle_stk_push_callback(WP_REST_Request $request)
         return new WP_REST_Response(['status' => 'error', 'data' => KKWoo_User_Friendly_Messages::get('invalid_order_status')], 400);
     }
 
-    if ($status === 'Success' && isset($resource['status']) && $resource['status'] === 'Received') {
+    if ($status === 'Success' && isset($resource_status) && $resource_status === 'Received') {
         // Mark order as paid
-        $order->payment_complete($resource['id']);
+        $order->payment_complete($resource_id);
         $order->add_order_note(sprintf(
             'Payment received via Kopo Kopo for WooCommerce. Amount: %s %s. Phone: %s',
-            $resource['currency'] ?? '',
-            $resource['amount'] ?? '',
-            $resource['sender_phone_number'] ?? ''
+            $data['currency'] ?? '',
+            $data['amount'] ?? '',
+            $data['senderPhoneNumber'] ?? ''
         ));
 
         // Necessary to update this to null when successful so as to remove error if earlier saved

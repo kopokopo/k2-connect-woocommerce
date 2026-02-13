@@ -17,7 +17,7 @@ test.describe("Check Payment Status (Guest User)", () => {
     const newOrder = await order();
     // Make Payment
     await page.goto(
-      `${process.env.WP_SITE_URL}/lipa-na-mpesa-k2/?order_key=${newOrder.order_key}`
+      `${process.env.WP_SITE_URL}/lipa-na-mpesa-k2/?kkwoo_order_key=${newOrder.order_key}`
     );
 
     await page.fill("#mpesa-phone-input", "923456789");

@@ -111,7 +111,7 @@ const K2PaymentContent = ({ emitResponse, billing, eventRegistration }) => {
 
   return (
     <>
-      <p>Click "Proceed to Lipa na M-PESA" below to pay with M-PESA.</p>
+      <p>Click "Lipa na M-PESA" below to pay with M-PESA.</p>
       {isModalOpen &&
         createPortal(
           <Modal isOpen={isModalOpen} >
