@@ -22,7 +22,7 @@ add_action('rest_api_init', function () {
 function handle_force_refresh_access_token(WP_REST_Request $request)
 {
     try {
-        \K2_Authorization::maybe_authorize(true);
+        \KKWoo_Authorization::maybe_authorize(true);
 
         $access_token = get_transient('kopokopo_access_token');
 

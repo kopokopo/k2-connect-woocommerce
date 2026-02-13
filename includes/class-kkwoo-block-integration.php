@@ -2,7 +2,7 @@
 <?php
 use Automattic\WooCommerce\Blocks\Integrations\IntegrationInterface;
 
-class WC_Block_Integration_K2 implements IntegrationInterface
+class KKWoo_Block_Integration implements IntegrationInterface
 {
     public function get_name(): string
     {

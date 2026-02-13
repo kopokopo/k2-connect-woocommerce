@@ -12,21 +12,21 @@ use WP_REST_Request;
 use WP_REST_Response;
 use KKWoo\Database\Manual_Payments_Tracker_repository;
 use KKWoo\ManualPayments\Manual_Payment_Service;
+use KKWoo\Security\Request_Validator;
 
 add_action('rest_api_init', function () {
     register_rest_route('kkwoo/v1', '/save-manual-payment-details', [
         'methods'  => 'POST',
         'callback' => __NAMESPACE__ . '\\handle_save_manual_payment_details',
-        'permission_callback' => '__return_true',
+        'permission_callback' => [Request_Validator::class, 'validate_order_access'],
     ]);
 
-    register_rest_route('kkwoo/v1', '/selected-manual-payment-method', [
+    register_rest_route('kkwoo/v1', '/selected-manual-payment-method/(?P<order_key>.+)', [
         'methods' => 'GET',
         'callback' => __NAMESPACE__ . '\\get_selected_manual_payment_method',
-        'permission_callback' => '__return_true',
+        'permission_callback' => [Request_Validator::class, 'validate_order_access'],
     ]);
 });
-
 
 function handle_save_manual_payment_details(WP_REST_Request $request): WP_REST_Response
 {

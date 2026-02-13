@@ -4,7 +4,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class WC_Gateway_K2_Payment extends WC_Payment_Gateway
+class KKWoo_Payment_Gateway extends WC_Payment_Gateway
 {
     protected string $client_id;
     protected string $client_secret;
@@ -106,6 +106,14 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
               'production' => 'Production (Live)',
             ],
           ],
+          'show_credit_text' => [
+            'title'       => 'Display Kopo Kopo Branding',
+            'type'        => 'checkbox',
+            'label'       => 'Display ‘Powered by Kopo Kopo’ branding text on public Lipa na M-PESA checkout and payment pages',
+            'description' => 'When enabled, a small “Powered by Kopo Kopo” text will be displayed on the Lipa na M-PESA payment-related pages. This text is disabled by default and can be turned on/off at any time.',
+            'default'     => 'no',
+            'desc_tip'    => true,
+          ],
           'manual_payment_option_notice' => [
               'title'       => 'Manual Payments Settings',
               'type'        => 'title',
@@ -162,6 +170,8 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
         add_action('admin_notices', [$this, 'admin_currency_warning']);
 
         add_action('woocommerce_after_settings_checkout', [$this, 'render_custom_payment_gateway_settings_buttons']);
+
+        add_action('admin_enqueue_scripts', [$this, 'kkwoo_enqueue_custom_settings_section_assets']);
     }
 
     public function process_payment($order_id): array
@@ -172,7 +182,7 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
         return [
             'result'   => 'success',
             'redirect' => home_url(add_query_arg([
-                'order_key'        => $order->get_order_key(),
+                'kkwoo_order_key'        => $order->get_order_key(),
             ], '/lipa-na-mpesa-k2/')),
         ];
     }
@@ -180,6 +190,12 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
 
     public function admin_missing_settings_notice(): void
     {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        $section = sanitize_text_field(wp_unslash($_GET['section'] ?? ''));
+        if ($section !== $this->id) {
+            return;
+        }
+
         if ('yes' === $this->get_option('enabled') && ! $this->is_configured()) {
             echo '<div class="notice notice-error"><p>';
             echo esc_html('Kopo Kopo for WooCommerce is enabled but not fully configured. Click ');
@@ -209,6 +225,12 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
 
     public function admin_currency_warning(): void
     {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        $section = sanitize_text_field(wp_unslash($_GET['section'] ?? ''));
+        if ($section !== $this->id) {
+            return;
+        }
+
         if ($this->wp_is_admin() && get_woocommerce_currency() !== 'KES' && $this->enabled === 'yes') {
             echo '<div class="notice notice-warning"><p>';
             echo esc_html('Kopo Kopo for WooCommerce requires your store currency to be Kenyan Shillings (KES). Please update it under WooCommerce → Settings → General.');
@@ -260,7 +282,7 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
 
     public function after_settings_updated(): void
     {
-        K2_Authorization::maybe_authorize(true);
+        KKWoo_Authorization::maybe_authorize(true);
     }
 
     public function render_custom_payment_gateway_settings_buttons(): void
@@ -271,6 +293,40 @@ class WC_Gateway_K2_Payment extends WC_Payment_Gateway
             return;
         }
 
-        include plugin_dir_path(__FILE__) . 'templates/k2_custom_payment_gateway_settings_sections.php';
+        include plugin_dir_path(__FILE__) . 'templates/kkwoo_custom_payment_gateway_settings_sections.php';
     }
+
+    public function kkwoo_enqueue_custom_settings_section_assets($hook)
+    {
+        if ($hook !== 'woocommerce_page_wc-settings') {
+            return;
+        }
+
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        $section = sanitize_text_field(wp_unslash($_GET['section'] ?? ''));
+        if ($section !== $this->id) {
+            return;
+        }
+
+        wp_enqueue_style(
+            'kkwoo-custom-settings-section',
+            KKWOO_PLUGIN_URL . 'assets/css/admin/kkwoo-custom-settings-section.css',
+            [],
+            KKWOO_ASSET_VERSION
+        );
+
+        wp_enqueue_script(
+            'kkwoo-custom-settings-section',
+            KKWOO_PLUGIN_URL . 'assets/js/admin/kkwoo-custom-settings-section.js',
+            [],
+            KKWOO_ASSET_VERSION,
+            true
+        );
+
+        $localized_data = [
+            'nonce'    => wp_create_nonce('wp_rest'),
+        ];
+        wp_localize_script('kkwoo-custom-settings-section', 'KKWooData', $localized_data);
+    }
+
 }

@@ -58,6 +58,7 @@ bin/setup-test-env.sh
 .php-cs-fixer.cache
 .phpcs.xml.dist
 .stubs/
+test-results/
 
 # OS or IDE specific files
 .DS_Store
@@ -67,3 +68,6 @@ bin/setup-test-env.sh
 # Node related
 node_modules/
 tests/e2e/.env
+
+# Ignore any compressed files
+*.zip

@@ -1,7 +1,7 @@
 === Kopo Kopo for WooCommerce ===
 Contributors: chemwen0
 Tags: payment gateway, kopo kopo, payments, lipa na mpesa, ecommerce
-Requires at least: 6.8.1
+Requires at least: 6.8
 Tested up to: 6.9
 Stable tag: 1.0.0
 Requires PHP: 7.4
@@ -38,6 +38,28 @@ To preserve order history and payment integrity, uninstalling this plugin remove
 
 ### We value your feedback
 If you have a specific feature request, please [let us know](https://kopokopo.co.ke/contact-us/?referrer=wordpress.com) so we can make the service perfect for you.
+
+== External Services ==
+
+This plugin connects to the [K2 Connect API](https://developers.kopokopo.com/) provided by [Kopo Kopo](https://kopokopo.co.ke/) to enable Lipa na M-PESA payment processing. K2 Connect is used to initiate STK Push payment requests, receive payment confirmations and send transaction updates to the shop. This service is required for the core functionality of the plugin.
+### What data is sent and when:
+**Data sent**: order reference number, order amount, customer phone number, till or paybill number(s) and K2 Connect credentials required to authenticate and process the payment.
+
+**Data received**: payment status, transaction responses, transaction results and webhook notifications.
+
+**When**: data is transmitted each time a customer selects this payment method at checkout, when an STK Push request is initiated or when the plugin verifies or receives payment confirmation through callbacks or webhooks.
+### Where the data is sent:
+The data is sent to Kopo Kopo servers.
+### Under which conditions:
+Data is only sent when:
+* The Kopo Kopo for WooCommerce plugin is activated and is being setup.
+* The customer chooses Lipa na M-PESA as the payment method and initiates a payment.
+* The plugin verifies or receives payment status updates
+
+No data is transmitted without user action. All data is transmitted for the purposes of authentication of payment requests, creation of webhooks to receive payment updates and processing of transactions.
+### Terms of Service and Privacy Policy:
+- [Kopo Kopo Terms and Conditions](https://kopokopo.co.ke/terms-conditions/)
+- [Kopo Kopo Privacy Policy](https://app.kopokopo.com/privacy)
 
 == Installation ==
 #### Requirements:

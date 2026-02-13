@@ -2,7 +2,7 @@
 
 use Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType;
 
-class WC_Gateway_K2_Blocks extends AbstractPaymentMethodType
+class KKWoo_Gateway_Blocks extends AbstractPaymentMethodType
 {
     private $gateway;
     protected $name = 'kkwoo';
@@ -21,7 +21,7 @@ class WC_Gateway_K2_Blocks extends AbstractPaymentMethodType
         } else {
             //If no gateway is available, it is likely that there is an issue in the K2 payment Gateway
             $this->gateway = null;
-            KKWoo_Logger::log('WC_Gateway_K2_Payment was not instantiated when WC_Gateway_K2_Blocks initialize() ran.', 'error');
+            KKWoo_Logger::log('KKWoo_Payment_Gateway was not instantiated when KKWoo_Gateway_Blocks initialize() ran.', 'error');
         }
     }
 
