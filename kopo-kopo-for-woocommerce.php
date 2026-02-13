@@ -5,7 +5,7 @@
 * Plugin URI:
 * Description: A Kopo Kopo plugin that integrates seamlessly with your WooCommerce shop, enabling your customers to make secure and convenient payments directly to your Kopo Kopo M-PESA till.
 * Version: 1.0.0
-* Requires at least: 6.8.1
+* Requires at least: 6.8
 * Requires PHP: 7.4
 * Author: Doreen Chemweno
 * Author URI: https://kopokopo.co.ke
@@ -20,17 +20,18 @@ if (!defined('ABSPATH')) {
 }
 
 require_once __DIR__ . '/vendor/autoload.php';
-require_once __DIR__ . '/includes/rest-api.php';
-require_once __DIR__ . '/includes/class-k2-payment-page.php';
+require_once __DIR__ . '/includes/kkwoo-rest-api.php';
+require_once __DIR__ . '/includes/class-kkwoo-payment-page.php';
 require_once __DIR__ . '/includes/class-kkwoo-logger.php';
 require_once __DIR__ . '/includes/class-kkwoo-user-friendly-messages.php';
 require_once __DIR__ . '/includes/class-kkwoo-activation-hook-service.php';
-require_once __DIR__ . '/includes/class-wc-k2-check-payment-status.php';
-require_once __DIR__ . '/includes/k2-authorization-rest-api.php';
-require_once __DIR__ . '/includes/k2-webhooks-rest-api.php';
-require_once __DIR__ . '/includes/k2-manual-payments-rest-api.php';
+require_once __DIR__ . '/includes/class-kkwoo-check-payment-status.php';
+require_once __DIR__ . '/includes/kkwoo-authorization-rest-api.php';
+require_once __DIR__ . '/includes/kkwoo-webhooks-rest-api.php';
+require_once __DIR__ . '/includes/kkwoo-manual-payments-rest-api.php';
 require_once __DIR__ . '/includes/class-kkwoo-manual-payments-tracker-repository.php';
 require_once __DIR__ . '/includes/class-kkwoo-manual-payments-service.php';
+require_once __DIR__ . '/includes/class-kkwoo-request-validator.php';
 
 if (!defined('KKWOO_PLUGIN_VERSION')) {
     $kkwoo_plugin_data = get_file_data(__FILE__, ['Version' => 'Version']);
@@ -68,40 +69,31 @@ register_activation_hook(__FILE__, function () {
 });
 
 register_deactivation_hook(__FILE__, function () {
-    K2_Payment_Page::flush_rules();
+    KKWoo_Payment_Page::flush_rules();
 });
 
 // Register the gateway on plugins_loaded
 add_action('plugins_loaded', 'kkwoo_woocommerce_gateway_k2_payment_init', 0);
 function kkwoo_woocommerce_gateway_k2_payment_init()
 {
-    if (! class_exists('WooCommerce')) {
-        add_action('admin_notices', function () {
-            echo '<div class="error"><p><strong>';
-            echo esc_html('WooCommerce is not active. Please install and activate WooCommerce to use the Kopo Kopo for WooCommerce plugin.');
-            echo '</strong></p></div>';
-        });
-        return;
-    }
-
     if (! class_exists('WC_Payment_Gateway')) {
         return;
     }
 
-    require_once __DIR__ . '/includes/class-wc-gateway-k2-payment.php';
-    require_once __DIR__ . '/includes/class-k2-authorization.php';
+    require_once __DIR__ . '/includes/class-kkwoo-payment-gateway.php';
+    require_once __DIR__ . '/includes/class-kkwoo-authorization.php';
 
     add_filter('woocommerce_payment_gateways', function ($methods) {
-        $methods[] = 'WC_Gateway_K2_Payment';
+        $methods[] = 'KKWoo_Payment_Gateway';
         return $methods;
     });
 
-    new WC_K2_Check_Payment_Status();
-    new K2_Payment_Page();
+    new KKWoo_Check_Payment_Status();
+    new KKWoo_Payment_Page();
 }
 
-add_action('woocommerce_checkout_init', ['K2_Authorization', 'maybe_authorize']);
-add_action('woocommerce_view_order', ['K2_Authorization', 'maybe_authorize'], 10, 1);
+add_action('woocommerce_checkout_init', ['KKWoo_Authorization', 'maybe_authorize']);
+add_action('woocommerce_view_order', ['KKWoo_Authorization', 'maybe_authorize'], 10, 1);
 
 
 add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'kkwoo_wc_settings_link');
@@ -155,7 +147,7 @@ function kkwoo_register_block_payment_method()
         return;
     }
 
-    $blocks_file = __DIR__ . '/includes/class-wc-gateway-k2-blocks.php';
+    $blocks_file = __DIR__ . '/includes/class-kkwoo-gateway-blocks.php';
     if (!file_exists($blocks_file)) {
         KKWoo_Logger::log("Blocks file not found at $blocks_file", 'error');
         return;
@@ -163,20 +155,20 @@ function kkwoo_register_block_payment_method()
 
     require_once $blocks_file;
 
-    if (!class_exists('WC_Gateway_K2_Blocks')) {
-        KKWoo_Logger::log('WC_Gateway_K2_Blocks class not found after including the file', 'error');
+    if (!class_exists('KKWoo_Gateway_Blocks')) {
+        KKWoo_Logger::log('KKWoo_Gateway_Blocks class not found after including the file', 'error');
         return;
     }
 
     add_action('woocommerce_blocks_payment_method_type_registration', function ($registry) {
-        $payment_method = new WC_Gateway_K2_Blocks();
+        $payment_method = new KKWoo_Gateway_Blocks();
         $registry->register($payment_method);
     });
 
-    require_once __DIR__ . '/includes/class-wc-block-integration-k2.php';
-    if (class_exists(WC_Block_Integration_K2::class)) {
+    require_once __DIR__ . '/includes/class-kkwoo-block-integration.php';
+    if (class_exists(KKWoo_Block_Integration::class)) {
         add_action('woocommerce_blocks_checkout_block_registration', function ($integration_registry) {
-            $integration_registry->register(new WC_Block_Integration_K2());
+            $integration_registry->register(new KKWoo_Block_Integration());
         });
     }
 }
@@ -229,7 +221,7 @@ add_action('wp_enqueue_scripts', function () {
                 'kkwoo-order-view-handler',
                 plugin_dir_url(__FILE__) . 'assets/js/order-view-handler.js',
                 ['jquery'],
-                '1.1',
+                KKWOO_ASSET_VERSION,
                 true
             );
             wp_localize_script('kkwoo-order-view-handler', 'KKWooData', $localized_data);
@@ -257,7 +249,7 @@ add_action('template_redirect', function () {
         return;
     }
 
-    $order_key = sanitize_text_field(get_query_var('order_key'));
+    $order_key = sanitize_text_field(get_query_var('kkwoo_order_key'));
     $order_id  = wc_get_order_id_by_order_key($order_key);
     $order     = wc_get_order($order_id);
 
@@ -377,15 +369,17 @@ add_action('template_redirect', function () {
             <div class="k2 modal-overlay" style="display: none">
                 <div class="modal-body">
                     <div class="modal-content"></div>
-                    <div class="modal-footer">
-                        Powered by
-                        <img src="<?php echo esc_url(plugins_url('images/svg/k2-logo-with-name.svg', __FILE__)) ?>">
-                    </div>
-                </div>
-                <p class='switch-to-manual-payments'>Having trouble? Pay via 
-                    <button id='switch-to-manual-payments' class="link">M-PESA Buy Goods</button>
-                </p>
+
+                    <?php if ('yes' === $kkwoo->get_option('show_credit_text')) : ?>
+                        <div class="modal-footer">
+                            Powered by
+                            <img src="<?php echo esc_url(plugins_url('images/svg/k2-logo-with-name.svg', __FILE__)) ?>">
+                        </div>
+                    <?php endif; ?>
             </div>
+            <p class='switch-to-manual-payments'>Having trouble? Pay via 
+                <button id='switch-to-manual-payments' class="link">M-PESA Buy Goods</button>
+            </p>
         </main>
 
         <?php

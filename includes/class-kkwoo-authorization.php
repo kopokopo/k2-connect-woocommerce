@@ -1,11 +1,13 @@
 <?php
 
-// includes/class-k2-authorization.php
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 use Kopokopo\SDK\K2;
 
-if (!class_exists('K2_Authorization')) {
-    class K2_Authorization
+if (!class_exists('KKWoo_Authorization')) {
+    class KKWoo_Authorization
     {
         /**
         * Handles authorization for Kopo Kopo requests.
@@ -40,7 +42,7 @@ if (!class_exists('K2_Authorization')) {
         /**
          * Authorize requests to Kopo Kopo.
          *
-         * @param WC_Gateway_K2_Payment $kkwoo. The Kopo Kopo payment gateway instance.
+         * @param KKWoo_Payment_Gateway $kkwoo. The Kopo Kopo payment gateway instance.
          * @return void
          */
         private static function send_authorization_request($kkwoo): void
@@ -98,7 +100,7 @@ if (!class_exists('K2_Authorization')) {
         /**
         * Get a K2 client instance.
         *
-        * @param WC_Gateway_K2_Payment $kkwoo. The Kopo Kopo payment gateway instance.
+        * @param KKWoo_Payment_Gateway $kkwoo. The Kopo Kopo payment gateway instance.
         * @return \KopoKopo\SDK\K2 The K2 client instance.
         */
         public static function getClient($kkwoo): ?Kopokopo\SDK\K2

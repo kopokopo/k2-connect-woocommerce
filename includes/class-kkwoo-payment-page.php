@@ -4,7 +4,7 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
-class K2_Payment_Page
+class KKWoo_Payment_Page
 {
     public function __construct()
     {
@@ -30,7 +30,7 @@ class K2_Payment_Page
     public function add_query_vars($vars): array
     {
         $vars[] = 'lipa_na_mpesa_k2';
-        $vars[] = 'order_key';
+        $vars[] = 'kkwoo_order_key';
         return $vars;
     }
 
