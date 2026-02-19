@@ -1,11 +1,15 @@
 /**
- * M-PESA Number Form Template
+ * M-PESA Number Form Template.
+ *
+ * Adds a template function to render the M-PESA number input.
+ *
+ * @param {Object} templates Template registry object.
  */
-(function(templates) {
-    'use strict';
-    
-    templates.MpesaNumberForm = function() {
-        return `
+( function ( templates ) {
+	'use strict';
+
+	templates.MpesaNumberForm = function () {
+		return `
           <div id='mpesa-number-form'>
             <header>
                 <h3 class="modal-title">Lipa na M-PESA</h3 >
@@ -26,7 +30,9 @@
                 <label>Enter M-PESA phone number</label>
                 <div class='amount-input'>
                     <span class='country-code'>
-                    <img src='${templates.getImageUrl('kenyan_flag_img')}' alt='Kenyan flag' class='k2'/> 
+                    <img src='${ templates.getImageUrl(
+						'kenyan_flag_img'
+					) }' alt='Kenyan flag' class='k2'/> 
                     <span> +254</span>
                     </span>
                     <input id='mpesa-phone-input' type='text' placeholder='7xx xxx xxx'/>
@@ -44,6 +50,6 @@
                 </button>
             </div>
         </div>
-      `
-    };
-})(window.KKWooTemplates);
+      `;
+	};
+} )( window.KKWooTemplates );

@@ -1,0 +1,39 @@
+:root {
+	/* COLORS */
+	--Secondary-Success-success-500: #149187;
+	--Primary-Navy-Blue-navy-blue-100: #BCC1C8;
+	--Secondary-Grey-grey-50: #F7F8F8;
+	/* END OF COLORS */
+}
+
+/* BUTTON*/
+button.k2 {
+	display: inline-flex;
+	justify-content: center;
+	gap: 4px;
+	font-family: "Poppins", sans-serif !important;
+	padding: 12px 18px;
+	border-radius: 8px;
+	border: 1px solid var(--Secondary-Success-success-500);
+	background: var(--Secondary-Success-success-500);
+	color: white;
+	width: 100%;
+	font-weight: 600;
+}
+
+button.k2:disabled {
+	opacity: .7;
+}
+
+button.k2.outline:hover {
+	border: 1px solid var(--Primary-Navy-Blue-navy-blue-100);
+	background: var(--Secondary-Grey-grey-50);
+	box-shadow: 0 1px 2px 0 rgba(16, 24, 40, 0.05);
+}
+/* BUTTON */
+
+/* IMAGE */
+img.k2 {
+	max-width: fit-content !important; /* done this to override woo commerce max-width: 100% which affects k2 images */
+}
+/* END IMAGE */

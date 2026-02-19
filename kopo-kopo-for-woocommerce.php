@@ -75,7 +75,7 @@ register_activation_hook(
 register_deactivation_hook(
 	__FILE__,
 	function () {
-		KKWoo_Payment_Page::flush_rules();
+		flush_rewrite_rules();
 	}
 );
 
@@ -225,14 +225,6 @@ add_action(
 	'wp_enqueue_scripts',
 	function () {
 		if ( is_checkout() ) {
-			wp_enqueue_script(
-				'kkwoo-checkout-handler',
-				plugin_dir_url( __FILE__ ) . 'assets/js/classic-checkout-handler.js',
-				array( 'jquery' ),
-				KKWOO_ASSET_VERSION,
-				true
-			);
-
 			wp_enqueue_style(
 				'kkwoo-google-font',
 				'https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap',
@@ -241,9 +233,17 @@ add_action(
 			);
 
 			if ( ! function_exists( 'wc_get_container' ) ) { // Not block checkout.
+				wp_enqueue_script(
+					'kkwoo-checkout-handler',
+					plugin_dir_url( __FILE__ ) . 'assets/js/kkwoo-classic-checkout-handler.js',
+					array( 'jquery' ),
+					KKWOO_ASSET_VERSION,
+					true
+				);
+
 				wp_enqueue_style(
 					'kkwoo-classic-style',
-					plugins_url( 'assets/style.css', __FILE__ ),
+					plugins_url( 'assets/css/kkwoo-style.css', __FILE__ ),
 					array(),
 					KKWOO_ASSET_VERSION
 				);
@@ -260,6 +260,7 @@ add_action(
 			}
 			$order          = $order_id ? wc_get_order( $order_id ) : null;
 			$localized_data = array(
+				'site_url'     => site_url(),
 				'nonce'        => wp_create_nonce( 'wp_rest' ),
 				'order_key'    => $order->get_order_key(),
 				'spinner_icon' => plugins_url( 'images/svg/spinner.svg', __FILE__ ),
@@ -268,21 +269,12 @@ add_action(
 			if ( $order ) {
 				wp_enqueue_script(
 					'kkwoo-order-view-handler',
-					plugin_dir_url( __FILE__ ) . 'assets/js/order-view-handler.js',
+					plugin_dir_url( __FILE__ ) . 'assets/js/kkwoo-order-view-handler.js',
 					array( 'jquery' ),
 					KKWOO_ASSET_VERSION,
 					true
 				);
 				wp_localize_script( 'kkwoo-order-view-handler', 'KKWooData', $localized_data );
-
-				if ( ! function_exists( 'wc_get_container' ) ) { // Not block checkout.
-						wp_enqueue_style(
-							'kkwoo-classic-style',
-							plugins_url( 'assets/style.css', __FILE__ ),
-							array(),
-							KKWOO_ASSET_VERSION
-						);
-				}
 			}
 		}
 	}
@@ -335,6 +327,7 @@ add_action(
 
 		$localized_data = array(
 			'ajax_url'                       => admin_url( 'admin-ajax.php' ),
+			'site_url'                       => site_url(),
 			'nonce'                          => wp_create_nonce( 'wp_rest' ),
 			'order_key'                      => $order_key,
 			'order_status'                   => $order->get_status(),
@@ -357,18 +350,18 @@ add_action(
 		$base_url = plugin_dir_url( __FILE__ ) . 'assets/js/';
 
 		$scripts = array(
-			'kkwoo-ui-templates-init'           => 'ui-templates/ui-templates-init.js',
-			'kkwoo-mpesa-number-form'           => 'ui-templates/mpesa-number-form.js',
-			'kkwoo-pin-instruction'             => 'ui-templates/pin-instruction.js',
-			'kkwoo-polling'                     => 'ui-templates/polling.js',
-			'kkwoo-payment-success'             => 'ui-templates/payment-success.js',
-			'kkwoo-payment-error'               => 'ui-templates/payment-error.js',
-			'kkwoo-payment-no-result-yet'       => 'ui-templates/payment-no-result-yet.js',
-			'kkwoo-payment-refunded'            => 'ui-templates/payment-refunded.js',
-			'kkwoo-manual-payment-instructions' => 'ui-templates/manual-payment-instructions.js',
-			'kkwoo-polling-manager'             => 'polling-manager.js',
-			'kkwoo-k2-validations'              => 'k2-validations.js',
-			'kkwoo-payment-flow-handler'        => 'k2-payment-flow-handler.js',
+			'kkwoo-ui-templates-init'           => 'ui-templates/kkwoo-ui-templates-init.js',
+			'kkwoo-mpesa-number-form'           => 'ui-templates/kkwoo-mpesa-number-form.js',
+			'kkwoo-pin-instruction'             => 'ui-templates/kkwoo-pin-instruction.js',
+			'kkwoo-polling'                     => 'ui-templates/kkwoo-polling.js',
+			'kkwoo-payment-success'             => 'ui-templates/kkwoo-payment-success.js',
+			'kkwoo-payment-error'               => 'ui-templates/kkwoo-payment-error.js',
+			'kkwoo-payment-no-result-yet'       => 'ui-templates/kkwoo-payment-no-result-yet.js',
+			'kkwoo-payment-refunded'            => 'ui-templates/kkwoo-payment-refunded.js',
+			'kkwoo-manual-payment-instructions' => 'ui-templates/kkwoo-manual-payment-instructions.js',
+			'kkwoo-polling-manager'             => 'kkwoo-polling-manager.js',
+			'kkwoo-k2-validations'              => 'kkwoo-validations.js',
+			'kkwoo-payment-flow-handler'        => 'kkwoo-payment-flow-handler.js',
 		);
 
 		wp_enqueue_script( 'jquery' );
@@ -391,7 +384,7 @@ add_action(
 
 		wp_enqueue_style(
 			'kkwoo-classic-style',
-			plugins_url( 'src/style.css', __FILE__ ),
+			plugins_url( 'assets/css/kkwoo-style.css', __FILE__ ),
 			array(),
 			KKWOO_ASSET_VERSION
 		);
