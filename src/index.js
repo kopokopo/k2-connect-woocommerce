@@ -1,43 +1,36 @@
-import './style.css';
-import { createElement, render } from '@wordpress/element';
-import K2PaymentContent from './K2PaymentContent';
+import './kkwoo-block-style.css';
+import { createElement } from '@wordpress/element';
 
 const { getSetting } = window.wc.wcSettings;
 
-const settings = getSetting('kkwoo_data', {});
+const settings = getSetting( 'kkwoo_data', {} );
 
-const registerPaymentMethodWithRegistry = (registry = window.wc.wcBlocksRegistry) => {
+const registerPaymentMethodWithRegistry = (
+	registry = window.wc.wcBlocksRegistry
+) => {
 	const { registerPaymentMethod } = registry;
 
-	registerPaymentMethod({
+	registerPaymentMethod( {
 		name: 'kkwoo',
 		paymentMethodId: 'kkwoo',
-		label: <span>{settings.title}</span>,
+		label: <span>{ settings.title }</span>,
 		ariaLabel: settings.title,
-		content: createElement(K2PaymentContent),
-		edit: createElement('p', {}, settings.description),
+		content: createElement(
+			'p',
+			{},
+			'Click &quot;Lipa na M-PESA&quot; below to pay with M-PESA.'
+		),
+		edit: createElement( 'p', {}, settings.description ),
 		canMakePayment: () => true,
 		placeOrderButtonLabel: 'Lipa na M-PESA',
 		supports: {
 			features: settings.supports ?? [],
 		},
-		payment: () => {
-			return {
-				then: (resolve) => {
-					// We'll resolve success only after modal confirms
-					window.kkwooResolvePayment = resolve;
-
-					// Trigger modal open logic (can use custom event or global state)
-					const event = new CustomEvent('kkwoo-open-modal');
-					window.dispatchEvent(event);
-					},
-			};
-		},
-	});
+	} );
 
 	window.kkwooRegistered = true;
 };
 
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener( 'DOMContentLoaded', () => {
 	registerPaymentMethodWithRegistry();
-});
+} );

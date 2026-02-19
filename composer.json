@@ -3,7 +3,10 @@
     "kopokopo/k2-connect-php": "^1.4"
   },
   "config": {
-    "preferred-install": "dist"
+    "preferred-install": "dist",
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
   },
   "scripts": {
     "test": "phpunit"
@@ -20,6 +23,7 @@
     "php-stubs/genesis-stubs": "dev-master",
     "php-stubs/wp-cli-stubs": "dev-master",
     "yoast/phpunit-polyfills": "^4.0",
-    "php-stubs/wordpress-tests-stubs": "^6.8"
+    "php-stubs/wordpress-tests-stubs": "^6.8",
+    "wp-coding-standards/wpcs": "^3.3"
   }
 }
