@@ -9,6 +9,8 @@
   "scripts": {
     "build": "wp-scripts build",
     "start": "wp-scripts start",
+    "lint": "wp-scripts lint-js",
+    "format": "wp-scripts format",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Doreen Chemweno",

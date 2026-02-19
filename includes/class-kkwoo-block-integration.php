@@ -35,7 +35,7 @@ class KKWoo_Block_Integration implements IntegrationInterface {
 	 * @return void
 	 */
 	public function initialize(): void {
-		$style_path  = 'build/style-index.css';
+		$style_path  = 'build/index.css';
 		$script_path = 'build/index.js';
 
 		$script_url = KKWOO_PLUGIN_URL . $script_path;
@@ -51,7 +51,7 @@ class KKWoo_Block_Integration implements IntegrationInterface {
 			'kopo-kopo-blocks-style',
 			$style_url,
 			array(),
-			filemtime( KKWOO_PLUGIN_PATH . $style_path )
+			$asset['version'],
 		);
 
 		wp_register_script(

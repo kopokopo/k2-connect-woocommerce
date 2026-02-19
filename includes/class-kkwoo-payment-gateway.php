@@ -238,6 +238,7 @@ class KKWoo_Payment_Gateway extends WC_Payment_Gateway {
 
 		add_action( 'admin_notices', array( $this, 'admin_missing_settings_notice' ) );
 		add_action( 'admin_notices', array( $this, 'admin_currency_warning' ) );
+		add_action( 'admin_notices', array( $this, 'admin_permalinks_disabled_warning' ) );
 
 		add_action( 'woocommerce_after_settings_checkout', array( $this, 'render_custom_payment_gateway_settings_buttons' ) );
 
@@ -338,6 +339,31 @@ class KKWoo_Payment_Gateway extends WC_Payment_Gateway {
 	}
 
 	/**
+	 * Shows a warning im admin if permalinks are not enabled.
+	 * 
+	 * Pretty permalinks are required because the plugin registers query vars
+	 * for custom endpoints (like 'lipa_na_mpesa_k2') via add_rewrite_rule(). 
+	 * Without pretty permalinks, these endpoints cannot be recognized and will 404.
+	 *
+	 * @return void
+	 */
+	public function admin_permalinks_disabled_warning(): void {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$section = sanitize_text_field( wp_unslash( $_GET['section'] ?? '' ) );
+		if ( $section !== $this->id ) {
+			return;
+		}
+
+    	// Only show notice if plugin is enabled and permalinks are disabled.
+    	if ( $this->wp_is_admin() && '' === get_option('permalink_structure') && 'yes' === $this->enabled ) {
+        	echo '<div class="notice notice-warning is-dismissible"><p>';
+        	echo esc_html( 'Kopo Kopo for WooCommerce requires pretty permalinks to route its endpoints correctly. Please enable them in Settings → Permalinks.' );
+        	echo ' <a href="' . esc_url( admin_url('options-permalink.php') ) . '">Go to Permalinks Settings</a></p>';
+        	echo '</div>';
+    	}	
+	}
+
+	/**
 	 * Checks if the gateway is fully configured.
 	 *
 	 * The Lipa na M-Pesa option is visible to customers only
@@ -395,7 +421,7 @@ class KKWoo_Payment_Gateway extends WC_Payment_Gateway {
 	 */
 	public function is_available(): bool {
 		$is_available = ( 'yes' === $this->enabled );
-		if ( ! $this->is_configured() || ( 'KES' !== $this->wp_get_currency() ) ) {
+		if ( ! $this->is_configured() || ( 'KES' !== $this->wp_get_currency() || '' === get_option('permalink_structure') ) ) {
 			$is_available = false;
 		}
 		return $is_available;
@@ -458,7 +484,8 @@ class KKWoo_Payment_Gateway extends WC_Payment_Gateway {
 		);
 
 		$localized_data = array(
-			'nonce' => wp_create_nonce( 'wp_rest' ),
+			'site_url' => site_url(),
+			'nonce'    => wp_create_nonce( 'wp_rest' ),
 		);
 		wp_localize_script( 'kkwoo-custom-settings-section', 'KKWooData', $localized_data );
 	}
