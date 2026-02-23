@@ -340,9 +340,9 @@ class KKWoo_Payment_Gateway extends WC_Payment_Gateway {
 
 	/**
 	 * Shows a warning im admin if permalinks are not enabled.
-	 * 
+	 *
 	 * Pretty permalinks are required because the plugin registers query vars
-	 * for custom endpoints (like 'lipa_na_mpesa_k2') via add_rewrite_rule(). 
+	 * for custom endpoints (like 'lipa_na_mpesa_k2') via add_rewrite_rule().
 	 * Without pretty permalinks, these endpoints cannot be recognized and will 404.
 	 *
 	 * @return void
@@ -354,13 +354,13 @@ class KKWoo_Payment_Gateway extends WC_Payment_Gateway {
 			return;
 		}
 
-    	// Only show notice if plugin is enabled and permalinks are disabled.
-    	if ( $this->wp_is_admin() && '' === get_option('permalink_structure') && 'yes' === $this->enabled ) {
-        	echo '<div class="notice notice-warning is-dismissible"><p>';
-        	echo esc_html( 'Kopo Kopo for WooCommerce requires pretty permalinks to route its endpoints correctly. Please enable them in Settings → Permalinks.' );
-        	echo ' <a href="' . esc_url( admin_url('options-permalink.php') ) . '">Go to Permalinks Settings</a></p>';
-        	echo '</div>';
-    	}	
+		// Only show notice if plugin is enabled and permalinks are disabled.
+		if ( $this->wp_is_admin() && '' === get_option( 'permalink_structure' ) && 'yes' === $this->enabled ) {
+			echo '<div class="notice notice-warning is-dismissible"><p>';
+			echo esc_html( 'Kopo Kopo for WooCommerce requires pretty permalinks to route its endpoints correctly. Please enable them in Settings → Permalinks.' );
+			echo ' <a href="' . esc_url( admin_url( 'options-permalink.php' ) ) . '">Go to Permalinks Settings</a></p>';
+			echo '</div>';
+		}
 	}
 
 	/**
@@ -421,7 +421,7 @@ class KKWoo_Payment_Gateway extends WC_Payment_Gateway {
 	 */
 	public function is_available(): bool {
 		$is_available = ( 'yes' === $this->enabled );
-		if ( ! $this->is_configured() || ( 'KES' !== $this->wp_get_currency() || '' === get_option('permalink_structure') ) ) {
+		if ( ! $this->is_configured() || ( 'KES' !== $this->wp_get_currency() || '' === get_option( 'permalink_structure' ) ) ) {
 			$is_available = false;
 		}
 		return $is_available;

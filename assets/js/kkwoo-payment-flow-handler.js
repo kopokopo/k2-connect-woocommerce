@@ -117,6 +117,25 @@ window.addEventListener( 'beforeunload', function ( e ) {
 		},
 	};
 
+	/**
+	 *
+	 * Safely extracts a string value (e.g., an API error message).
+	 *
+	 * This is necessary as there are multiple error structures returned,
+	 * based on whether the error is returned by K2 Connect, wordpress or this plugin.
+	 * Returns the fallback if the value is not a valid string that can be displayed to users.
+	 *
+	 * @param {*}      value    The actual value
+	 * @param {string} fallback The value to be returned if the actual value is not a string
+	 * @return {string} Either the actual value or fallback value
+	 */
+	const ensureString = ( value, fallback ) => {
+		if ( typeof value !== 'string' ) {
+			return fallback;
+		}
+		return value;
+	};
+
 	function initiatePayment( phone ) {
 		$.ajax( {
 			url: `${ KKWooData.site_url }/wp-json/kkwoo/v1/stk-push`,
@@ -145,11 +164,12 @@ window.addEventListener( 'beforeunload', function ( e ) {
 				let errorMessage;
 				try {
 					const response = jqXHR.responseJSON;
-					errorMessage =
+					errorMessage = ensureString(
 						response?.data?.data?.errorMessage ??
-						response?.message ??
-						response?.data ??
-						'Something went wrong. Please try again.';
+							response?.message ??
+							response?.data,
+						'Something went wrong. Please try again.'
+					);
 				} catch ( e ) {
 					errorMessage = 'Something went wrong. Please try again.';
 				}
@@ -193,11 +213,12 @@ window.addEventListener( 'beforeunload', function ( e ) {
 				let errorMessage;
 				try {
 					const response = jqXHR.responseJSON;
-					errorMessage =
+					errorMessage = ensureString(
 						response?.data?.data?.errorMessage ??
-						response?.message ??
-						response?.data ??
-						'Something went wrong. Please try again.';
+							response?.message ??
+							response?.data,
+						'Something went wrong. Please try again.'
+					);
 				} catch ( e ) {
 					errorMessage = 'Something went wrong. Please try again.';
 				}
@@ -232,11 +253,12 @@ window.addEventListener( 'beforeunload', function ( e ) {
 				let errorMessage;
 				try {
 					const response = jqXHR.responseJSON;
-					errorMessage =
+					errorMessage = ensureString(
 						response?.data?.data?.errorMessage ??
-						response?.message ??
-						response?.data ??
-						'Something went wrong. Please try again.';
+							response?.message ??
+							response?.data,
+						'Something went wrong. Please try again.'
+					);
 				} catch ( e ) {
 					errorMessage = 'Something went wrong. Please try again.';
 				}

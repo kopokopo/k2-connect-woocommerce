@@ -105,8 +105,8 @@ class KKWoo_Gateway_Blocks extends AbstractPaymentMethodType {
 	 */
 	public function get_payment_method_data(): array {
 		return array(
-			'title'       => $this->gateway->title,
-			'description' => $this->gateway->method_description,
+			'title'       => ! empty( $this->gateway->title ) ? $this->gateway->title : 'Lipa na M-PESA',
+			'description' => ! empty( $this->gateway->method_description ) ? $this->gateway->method_description : '',
 			'supports'    => $this->gateway->supports,
 		);
 	}

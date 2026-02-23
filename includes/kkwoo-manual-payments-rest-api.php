@@ -116,8 +116,8 @@ function handle_save_manual_payment_details( WP_REST_Request $request ): WP_REST
 		}
 
 		$upsert_result = KKWoo_Manual_Payments_Tracker_Repository::upsert(
-			$order_id,
 			$mpesa_ref_no,
+			$order_id,
 		);
 
 		if ( ! $upsert_result ) {

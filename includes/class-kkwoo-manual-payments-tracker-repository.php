@@ -54,12 +54,12 @@ class KKWoo_Manual_Payments_Tracker_Repository {
 	/**
 	 * Inserts or updates a manual payment record.
 	 *
-	 * @param int|null    $order_id         The WooCommerce order ID associated with the payment.
 	 * @param string      $mpesa_ref_no     The M-Pesa reference number.
+	 * @param int|null    $order_id         The WooCommerce order ID associated with the payment.
 	 * @param string|null $webhook_payload  Webhook payload received from Kopo Kopo.
 	 * @return bool true on success, false on failure.
 	 */
-	public static function upsert( int $order_id = null, string $mpesa_ref_no, string $webhook_payload = null ): bool {
+	public static function upsert( string $mpesa_ref_no, ?int $order_id = null, ?string $webhook_payload = null ): bool {
 		global $wpdb;
 
 		$table = self::table_name();

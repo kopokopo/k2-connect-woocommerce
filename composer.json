@@ -1,9 +1,14 @@
 {
   "require": {
-    "kopokopo/k2-connect-php": "^1.4"
+    "php": "^7.4 || ^8.0",
+    "kopokopo/k2-connect-php": "^1.4",
+    "symfony/deprecation-contracts": "^2.5"
   },
   "config": {
     "preferred-install": "dist",
+    "platform": {
+      "php": "7.4.0"
+    },
     "allow-plugins": {
       "dealerdirect/phpcodesniffer-composer-installer": true
     }

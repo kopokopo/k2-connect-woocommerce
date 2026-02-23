@@ -1,7 +1,7 @@
 === Kopo Kopo for WooCommerce ===
 Contributors: chemwen0
 Tags: payment gateway, kopo kopo, payments, lipa na mpesa, ecommerce
-Requires at least: 6.8
+Requires at least: 6.2
 Tested up to: 6.9
 Stable tag: 1.0.1
 Requires PHP: 7.4
@@ -63,8 +63,8 @@ No data is transmitted without user action. All data is transmitted for the purp
 
 == Installation ==
 #### Requirements:
-- WordPress Version 6.7 or newer (installed).
-- WooCommerce Version 9.2 or newer (installed and activated).
+- WordPress Version 6.2 or newer (installed).
+- WooCommerce Version 8.0 or newer (installed and activated).
 - PHP Version 7.4 or newer.
 - Kopo Kopo account.
 
@@ -78,6 +78,16 @@ No data is transmitted without user action. All data is transmitted for the purp
 **Note**: You can activate it later via **Plugins > Installed Plugins**.
 
 ### Setup and configuration
+#### Pretty Permalinks Required
+This plugin requires Pretty Permalinks to be enabled.
+
+The plugin creates custom payment URLs using WordPress rewrite rules. If Pretty Permalinks are disabled, these URLs will not work and may result in a 404 error.
+
+To enable Pretty Permalinks:
+1. Go to **WordPress Admin** > **Settings** > **Permalinks**.
+2. Select **"Post name" or any structure other than "Plain"**.
+3. Click **Save Changes**.
+
 #### Follow these steps to connect the plugin to your Kopo Kopo account:
 1. Go to **WooCommerce > Settings**.
 2. Click the **Payments** tab.
@@ -94,6 +104,9 @@ No data is transmitted without user action. All data is transmitted for the purp
    * **API key** - Enter your K2 Connect API Key.
    * **Environment** - Select the environment you want to use: Sandbox for testing or Production for live payments. **Ensure your credentials match the selected environment** to avoid errors.
 
+   ##### Optional: Enable Kopo Kopo Branding
+   * **Display Kopo Kopo Branding** - Enables the display of a small “Powered by Kopo Kopo” notice on Lipa na M-PESA payment pages. This option is disabled by default and can be turned on or off at any time without affecting payment functionality.
+
    ##### Manual payment settings
    * **Enable/Disable Manual Payments** - Use this option to provide a Lipa na M-PESA till number or Paybill details as a fallback to STK Push. After enabling, click **Create Webhook Subscriptions** at the bottom of the page. 
    * **Manual Payment Method** - Choose either **Till** or **Paybill** from the dropdown. If both are provided, the Till option will take priority.
@@ -105,8 +118,9 @@ To automatically update orders when manual payments are enabled, the plugin uses
 
 ### Troubleshooting
 If Kopo Kopo for WooCommerce does not appear in the payment options:
-1. Check for any warnings or error messages at the top of the plugin settings page.
-2. Confirm the following:
+1. Ensure the currency is set to Kenyan Shilling (KES). Check this under **Woocommerce** > **Settings** > **General**
+2. Check for any warnings or error messages at the top of the plugin settings page.
+3. Confirm the following:
    * **Enable/Disable** checkbox is checked.
    * Your **Till Number** is correctly entered under STK Push settings.
    * All **K2 Connect API credentials** are entered correctly.
@@ -118,6 +132,18 @@ If Kopo Kopo for WooCommerce does not appear in the payment options:
 - A Kopo Kopo account. Use an existing account or [open an account](https://kopokopo.co.ke/get-started/).
 - An active WooCommerce store.
 - A valid SSL certificate.
+
+= Why is the Lipa na M-PESA payment page showing a 404 error? =
+This usually happens when Pretty Permalinks are not enabled.
+
+The Kopo Kopo for WooCommerce plugin creates custom payment URLs (such as lipa_na_mpesa_k2) using WordPress rewrite rules. If your site is using the default Plain permalink structure, these URLs cannot be recognised and will return a 404 error.
+
+To fix this:
+1. Go to WordPress Admin > Settings > Permalinks
+2. Select any option other than Plain
+3. Click Save Changes
+
+After updating your permalink settings, the payment pages should work correctly.
 
 = Is this plugin available outside Kenya? =
 No. This plugin is built specifically for businesses in Kenya with Kopo Kopo accounts.
