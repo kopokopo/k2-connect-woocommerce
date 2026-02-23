@@ -4,33 +4,28 @@ import { createElement } from '@wordpress/element';
 const { getSetting } = window.wc.wcSettings;
 
 const settings = getSetting( 'kkwoo_data', {} );
+const title = settings.title ?? 'Lipa na M-PESA';
 
-const registerPaymentMethodWithRegistry = (
-	registry = window.wc.wcBlocksRegistry
-) => {
-	const { registerPaymentMethod } = registry;
+const { registerPaymentMethod } = window.wc.wcBlocksRegistry;
 
-	registerPaymentMethod( {
-		name: 'kkwoo',
-		paymentMethodId: 'kkwoo',
-		label: <span>{ settings.title }</span>,
-		ariaLabel: settings.title,
-		content: createElement(
-			'p',
-			{},
-			'Click &quot;Lipa na M-PESA&quot; below to pay with M-PESA.'
-		),
-		edit: createElement( 'p', {}, settings.description ),
-		canMakePayment: () => true,
-		placeOrderButtonLabel: 'Lipa na M-PESA',
-		supports: {
-			features: settings.supports ?? [],
-		},
-	} );
-
-	window.kkwooRegistered = true;
-};
-
-window.addEventListener( 'DOMContentLoaded', () => {
-	registerPaymentMethodWithRegistry();
+registerPaymentMethod( {
+	name: 'kkwoo',
+	paymentMethodId: 'kkwoo',
+	label: createElement( 'span', {}, title ),
+	ariaLabel: title,
+	content: createElement(
+		'p',
+		{},
+		'Click "Lipa na M-PESA" below to pay with M-PESA.'
+	),
+	edit: createElement(
+		'p',
+		{},
+		'Click "Lipa na M-PESA" below to pay with M-PESA.'
+	),
+	canMakePayment: () => true,
+	placeOrderButtonLabel: 'Lipa na M-PESA',
+	supports: {
+		features: settings.supports ?? [],
+	},
 } );

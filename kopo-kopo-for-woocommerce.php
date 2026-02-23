@@ -4,7 +4,7 @@
  * Plugin URI:
  * Description: A Kopo Kopo plugin that integrates seamlessly with your WooCommerce shop, enabling your customers to make secure and convenient payments directly to your Kopo Kopo M-PESA till.
  * Version: 1.0.1
- * Requires at least: 6.8
+ * Requires at least: 6.2
  * Requires PHP: 7.4
  * Author: Doreen Chemweno
  * Author URI: https://kopokopo.co.ke
@@ -225,6 +225,14 @@ add_action(
 	'wp_enqueue_scripts',
 	function () {
 		if ( is_checkout() ) {
+			wp_enqueue_script(
+				'kkwoo-checkout-handler',
+				plugin_dir_url( __FILE__ ) . 'assets/js/kkwoo-classic-checkout-handler.js',
+				array( 'jquery' ),
+				KKWOO_ASSET_VERSION,
+				true
+			);
+
 			wp_enqueue_style(
 				'kkwoo-google-font',
 				'https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap',
@@ -233,14 +241,6 @@ add_action(
 			);
 
 			if ( ! function_exists( 'wc_get_container' ) ) { // Not block checkout.
-				wp_enqueue_script(
-					'kkwoo-checkout-handler',
-					plugin_dir_url( __FILE__ ) . 'assets/js/kkwoo-classic-checkout-handler.js',
-					array( 'jquery' ),
-					KKWOO_ASSET_VERSION,
-					true
-				);
-
 				wp_enqueue_style(
 					'kkwoo-classic-style',
 					plugins_url( 'assets/css/kkwoo-style.css', __FILE__ ),
@@ -267,6 +267,12 @@ add_action(
 			);
 
 			if ( $order ) {
+				wp_enqueue_style(
+					'kkwoo-classic-style',
+					plugins_url( 'assets/css/kkwoo-style.css', __FILE__ ),
+					array(),
+					KKWOO_ASSET_VERSION
+				);
 				wp_enqueue_script(
 					'kkwoo-order-view-handler',
 					plugin_dir_url( __FILE__ ) . 'assets/js/kkwoo-order-view-handler.js',

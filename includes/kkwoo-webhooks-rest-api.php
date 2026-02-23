@@ -240,8 +240,8 @@ function process_request( WP_REST_Request $request ) {
 	if ( 'Received' === $data['status'] || 'Complete' === $data['status'] ) {
 		$encoded_webhook_payload = wp_json_encode( $validated_response );
 		KKWoo_Manual_Payments_Tracker_Repository::upsert(
-			null,
 			$reference,
+			null,
 			$encoded_webhook_payload,
 		);
 
