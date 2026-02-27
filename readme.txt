@@ -126,6 +126,18 @@ If Kopo Kopo for WooCommerce does not appear in the payment options:
    * All **K2 Connect API credentials** are entered correctly.
    * You clicked **Save Changes** during setup.
 
+== Screenshots ==
+
+1. Lipa na M-PESA payment option displayed on the Classic Checkout page.
+2. Lipa na M-PESA payment option displayed on the Block Checkout page.
+3. Payment initiation page after placing an order.
+4. STK push prompt sent – awaiting customer confirmation.
+5. Successful payment confirmation screen.
+6. Manual Lipa na M-PESA payment via Till number.
+7. Manual Lipa na M-PESA payment via Paybill number.
+8. Lipa na M-PESA gateway settings configuration.
+9. Manual Lipa na M-PESA gateway settings configuration.
+
 == Frequently Asked Questions ==
 
 = What do I need to use the plugin? =
