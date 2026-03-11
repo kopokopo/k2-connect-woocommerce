@@ -50,7 +50,7 @@ if ( ! defined( 'KKWOO_SANDBOX_URL' ) ) {
 }
 
 if ( ! defined( 'KKWOO_PRODUCTION_URL' ) ) {
-	define( 'KKWOO_PRODUCTION_URL', 'https://app.kopokopo.com' );
+	define( 'KKWOO_PRODUCTION_URL', 'https://api.kopokopo.com' );
 }
 
 if ( ! defined( 'KKWOO_PLUGIN_PATH' ) ) {

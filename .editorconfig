@@ -1,0 +1,18 @@
+root = true
+
+# PHP files (WordPress standard)
+[*.php]
+indent_style = tab
+indent_size = 4
+
+# JS files (WordPress standard uses tabs too)
+[*.js]
+indent_style = tab
+indent_size = 4
+
+# CSS files
+[*.css]
+indent_style = tab
+indent_size = 4
+
+
