@@ -114,12 +114,14 @@ if ( ! class_exists( 'KKWoo_Authorization' ) ) {
 		public static function get_client( $kkwoo ): ?Kopokopo\SDK\K2 {
 			$environment = $kkwoo->get_option( 'environment' );
 			$base_url    = 'production' === $environment ? KKWOO_PRODUCTION_URL : KKWOO_SANDBOX_URL;
+			$source      = 'Kopokopo-WooCommerce-Plugin';
 
 			$options = array(
 				'clientId'     => $kkwoo->get_option( 'client_id' ),
 				'clientSecret' => $kkwoo->get_option( 'client_secret' ),
 				'apiKey'       => $kkwoo->get_option( 'api_key' ),
 				'baseUrl'      => $base_url,
+				'source'       => $source,
 			);
 
 			return new K2( $options );
