@@ -179,3 +179,6 @@ Reach out to our support team through any of the following channels: call 0709 3
 * Support for Lipa na M-PESA STK Push payments at checkout.
 * Webhooks for processing manual payments completed through Paybill and Till numbers acquired with Kopo Kopo.
 
+= 1.0.3 =
+* Updated plugin to work alongside other plugins in a multicurrency store.
+

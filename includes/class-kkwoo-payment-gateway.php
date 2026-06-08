@@ -237,7 +237,6 @@ class KKWoo_Payment_Gateway extends WC_Payment_Gateway {
 		);
 
 		add_action( 'admin_notices', array( $this, 'admin_missing_settings_notice' ) );
-		add_action( 'admin_notices', array( $this, 'admin_currency_warning' ) );
 		add_action( 'admin_notices', array( $this, 'admin_permalinks_disabled_warning' ) );
 
 		add_action( 'woocommerce_after_settings_checkout', array( $this, 'render_custom_payment_gateway_settings_buttons' ) );
@@ -317,25 +316,6 @@ class KKWoo_Payment_Gateway extends WC_Payment_Gateway {
 	 */
 	public function wp_get_currency(): string {
 		return get_woocommerce_currency();
-	}
-
-	/**
-	 * Shows a warning in admin if currency is not supported.
-	 *
-	 * @return void
-	 */
-	public function admin_currency_warning(): void {
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$section = sanitize_text_field( wp_unslash( $_GET['section'] ?? '' ) );
-		if ( $section !== $this->id ) {
-			return;
-		}
-
-		if ( $this->wp_is_admin() && 'KES' !== get_woocommerce_currency() && 'yes' === $this->enabled ) {
-			echo '<div class="notice notice-warning"><p>';
-			echo esc_html( 'Kopo Kopo for WooCommerce requires your store currency to be Kenyan Shillings (KES). Please update it under WooCommerce → Settings → General.' );
-			echo '</p></div>';
-		}
 	}
 
 	/**
