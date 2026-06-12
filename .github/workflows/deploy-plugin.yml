@@ -4,6 +4,12 @@ on:
   release:
     types: [published]
   workflow_dispatch: # Allows manual triggering if needed
+    inputs:
+      dry_run:
+        description: 'Run workflow in dry-run mode?'
+        required: false
+        type: boolean
+        default: true
 
 jobs:
   deploy:
@@ -11,6 +17,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Check if user is allowed
+        env:
+          RELEASE_MANAGERS: ${{ vars.RELEASE_MANAGERS }}
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          echo "Triggered by: $GITHUB_ACTOR"
+          
+          ALLOWED=$(echo "$RELEASE_MANAGERS" | grep -w "$GITHUB_ACTOR" || true)
+          if [ -z "$ALLOWED" ]; then
+            echo "❌ User $GITHUB_ACTOR is not allowed to trigger this workflow."
+            exit 1
+          fi
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -34,7 +53,7 @@ jobs:
           cp kopo-kopo-for-woocommerce.php dist/
           cp uninstall.php dist/
           
-          # Directoriesto include
+          # Directories to include
           cp -r assets/ dist/
           cp -r build/ dist/
           cp -r images/ dist/
@@ -44,6 +63,8 @@ jobs:
 
       - name: WordPress Plugin Deploy
         uses: 10up/action-wordpress-plugin-deploy@stable
+        with:
+          dry-run: ${{ inputs.dry_run || true }}
         env:
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
