@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "913bbc77245da837f97747fdcacef432",
+    "content-hash": "a4e79a2331ba116d5a891bc2601b942e",
     "packages": [
         {
             "name": "guzzlehttp/guzzle",
@@ -333,19 +333,20 @@
         },
         {
             "name": "kopokopo/k2-connect-php",
-            "version": "v1.4.0",
+            "version": "v2.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kopokopo/k2-connect-php.git",
-                "reference": "880a7056d70eafdc77f57b90548e31abf3abea73"
+                "reference": "1b4531617937b8269cd318436b47c861caf12b29"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kopokopo/k2-connect-php/zipball/880a7056d70eafdc77f57b90548e31abf3abea73",
-                "reference": "880a7056d70eafdc77f57b90548e31abf3abea73",
+                "url": "https://api.github.com/repos/kopokopo/k2-connect-php/zipball/1b4531617937b8269cd318436b47c861caf12b29",
+                "reference": "1b4531617937b8269cd318436b47c861caf12b29",
                 "shasum": ""
             },
             "require": {
+                "ext-json": "*",
                 "guzzlehttp/guzzle": "^6.3 || ^7.0",
                 "php": "^7.4 || ^8.0"
             },
@@ -359,7 +360,8 @@
                     "Kopokopo\\SDK\\Data\\": "src/data",
                     "Kopokopo\\SDK\\Tests\\": "tests",
                     "Kopokopo\\SDK\\Helpers\\": "src/helpers",
-                    "Kopokopo\\SDK\\Requests\\": "src/requests"
+                    "Kopokopo\\SDK\\Requests\\": "src/requests",
+                    "Kopokopo\\SDK\\Requests\\SendMoneyDestinations\\": "src/requests/send_money_destinations"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -376,9 +378,9 @@
             "homepage": "https://github.com/kopokopo/k2-connect-php",
             "support": {
                 "issues": "https://github.com/kopokopo/k2-connect-php/issues",
-                "source": "https://github.com/kopokopo/k2-connect-php/tree/v1.4.0"
+                "source": "https://github.com/kopokopo/k2-connect-php/tree/v2.0.0"
             },
-            "time": "2026-01-05T06:16:12+00:00"
+            "time": "2026-05-15T11:59:03+00:00"
         },
         {
             "name": "psr/http-client",
