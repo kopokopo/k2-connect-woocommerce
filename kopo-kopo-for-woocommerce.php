@@ -12,6 +12,7 @@
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Requires Plugins: woocommerce
  * WC tested up to: 10.4.3
+ * Tested up to: 7.0
  *
  * @package Kopo_Kopo_for_WooCommerce
  */
