@@ -2,8 +2,8 @@
 Contributors: chemwen0
 Tags: payment gateway, kopo kopo, payments, lipa na mpesa, ecommerce
 Requires at least: 6.2
-Tested up to: 6.9
-Stable tag: 1.0.2
+Tested up to: 7.0
+Stable tag: 1.0.3
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -178,4 +178,7 @@ Reach out to our support team through any of the following channels: call 0709 3
 * Initial release of k2_connect_woocommerce
 * Support for Lipa na M-PESA STK Push payments at checkout.
 * Webhooks for processing manual payments completed through Paybill and Till numbers acquired with Kopo Kopo.
+
+= 1.0.3 =
+* Updated plugin to work alongside other plugins in a multicurrency store.
 

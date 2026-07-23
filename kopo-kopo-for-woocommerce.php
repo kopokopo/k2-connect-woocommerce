@@ -3,7 +3,7 @@
  * Plugin Name: Kopo Kopo for WooCommerce
  * Plugin URI:
  * Description: A Kopo Kopo plugin that integrates seamlessly with your WooCommerce shop, enabling your customers to make secure and convenient payments directly to your Kopo Kopo M-PESA till.
- * Version: 1.0.2
+ * Version: 1.0.3
  * Requires at least: 6.2
  * Requires PHP: 7.4
  * Author: Doreen Chemweno
@@ -12,6 +12,7 @@
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Requires Plugins: woocommerce
  * WC tested up to: 10.4.3
+ * Tested up to: 7.0
  *
  * @package Kopo_Kopo_for_WooCommerce
  */
@@ -50,7 +51,7 @@ if ( ! defined( 'KKWOO_SANDBOX_URL' ) ) {
 }
 
 if ( ! defined( 'KKWOO_PRODUCTION_URL' ) ) {
-	define( 'KKWOO_PRODUCTION_URL', 'https://api.kopokopo.com' );
+	define( 'KKWOO_PRODUCTION_URL', 'https://app.kopokopo.com' );
 }
 
 if ( ! defined( 'KKWOO_PLUGIN_PATH' ) ) {

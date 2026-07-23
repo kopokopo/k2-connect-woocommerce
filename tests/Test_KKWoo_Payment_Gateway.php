@@ -90,17 +90,6 @@ class Test_KKWoo_Payment_Gateway extends WP_UnitTestCase {
 		);
 	}
 
-	public function test_admin_currency_warning_registered(): void {
-		$this->gateway->kkwoo_register_gateway_hooks();
-
-		$hook = 'woocommerce_update_options_payment_gateways_' . $this->gateway->id;
-
-		$this->assertNotFalse(
-			has_action( 'admin_notices', array( $this->gateway, 'admin_currency_warning' ) ),
-			'admin_currency_warning should be hooked into admin_notices'
-		);
-	}
-
 	public function test_form_fields_are_defined(): void {
 		$fields = $this->gateway->form_fields;
 
@@ -234,67 +223,6 @@ class Test_KKWoo_Payment_Gateway extends WP_UnitTestCase {
 
 		ob_start();
 		$this->gateway->admin_missing_settings_notice();
-		$output = ob_get_clean();
-
-		$this->assertEmpty( trim( $output ) );
-	}
-
-	public function test_admin_currency_warning_outputs_warning_if_not_kes(): void {
-		/** @var KKWoo_Payment_Gateway&\PHPUnit\Framework\MockObject\MockObject $gateway */
-		$gateway = $this->getMockBuilder( KKWoo_Payment_Gateway::class )
-			->disableOriginalConstructor() // don’t run constructor
-			->onlyMethods( array( 'wp_is_admin', 'wp_get_currency' ) )
-			->getMock();
-
-		$gateway->method( 'wp_is_admin' )->willReturn( true );
-		$gateway->method( 'wp_get_currency' )->willReturn( 'USD' );
-		$gateway->enabled = 'yes';
-
-		$gateway->id     = 'kkwoo';
-		$_GET['section'] = 'kkwoo';
-
-		ob_start();
-		$gateway->admin_currency_warning();
-		$output = ob_get_clean();
-
-		$this->assertStringContainsString( 'notice-warning', $output );
-		$this->assertStringContainsString(
-			'requires your store currency to be Kenyan Shillings (KES)',
-			$output
-		);
-	}
-
-	public function test_admin_currency_warning_outputs_nothing_if_not_kes_and_not_admin(): void {
-		/** @var KKWoo_Payment_Gateway&\PHPUnit\Framework\MockObject\MockObject $gateway */
-		$gateway = $this->getMockBuilder( KKWoo_Payment_Gateway::class )
-			->disableOriginalConstructor() // don’t run constructor
-			->onlyMethods( array( 'wp_is_admin', 'wp_get_currency' ) )
-			->getMock();
-
-		$gateway->method( 'wp_is_admin' )->willReturn( false );
-		$gateway->method( 'wp_get_currency' )->willReturn( 'USD' );
-		$gateway->enabled = 'yes';
-
-		ob_start();
-		$gateway->admin_currency_warning();
-		$output = ob_get_clean();
-
-		$this->assertEmpty( trim( $output ) );
-	}
-
-	public function test_admin_currency_warning_outputs_nothing_if_kes(): void {
-		/** @var KKWoo_Payment_Gateway&\PHPUnit\Framework\MockObject\MockObject $gateway */
-		$gateway = $this->getMockBuilder( KKWoo_Payment_Gateway::class )
-			->disableOriginalConstructor() // don’t run constructor
-			->onlyMethods( array( 'wp_is_admin', 'wp_get_currency' ) )
-			->getMock();
-
-		$gateway->method( 'wp_is_admin' )->willReturn( true );
-		$gateway->method( 'wp_get_currency' )->willReturn( 'USD' );
-		$gateway->enabled = 'yes';
-
-		ob_start();
-		$this->gateway->admin_currency_warning();
 		$output = ob_get_clean();
 
 		$this->assertEmpty( trim( $output ) );
