@@ -9,7 +9,7 @@ on:
         description: 'Run workflow in dry-run mode?'
         required: false
         type: boolean
-        default: true
+        default: false
 
 jobs:
   deploy:
@@ -71,7 +71,7 @@ jobs:
       - name: WordPress Plugin Deploy
         uses: 10up/action-wordpress-plugin-deploy@stable
         with:
-          dry-run: ${{ inputs.dry_run || true }}
+          dry-run: ${{ inputs.dry_run || false }}
         env:
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
