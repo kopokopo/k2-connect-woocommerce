@@ -31,6 +31,13 @@ jobs:
             exit 1
           fi
 
+      - name: Read Version File
+        id: get_version
+        run: |
+          VERSION_NUM=$(cat .version | tr -d '\r\n ')
+          echo "DEPLOY_VERSION=$VERSION_NUM" >> $GITHUB_ENV
+          echo "Detected version: $VERSION_NUM"
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -70,3 +77,4 @@ jobs:
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
           BUILD_DIR: dist/
           SLUG: kopo-kopo-for-woocommerce
+          VERSION: ${{ env.DEPLOY_VERSION }} 
