@@ -3,7 +3,7 @@ Contributors: chemwen0
 Tags: payment gateway, kopo kopo, payments, lipa na mpesa, ecommerce
 Requires at least: 6.2
 Tested up to: 7.0
-Stable tag: 1.0.3
+Stable tag: 1.0.4
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
